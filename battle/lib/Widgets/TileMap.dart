@@ -1,7 +1,9 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 
-class TileMap extends StatelessWidget {
+class TileMap extends StatefulWidget {
   final List<List<List<int>>> mapData;
   final String spriteMapPath;
   final int tileSize;
@@ -21,20 +23,42 @@ class TileMap extends StatelessWidget {
   int get columns => mapData.isNotEmpty && mapData[0].isNotEmpty && mapData[0][0].isNotEmpty ? mapData[0][0].length : 0;
 
   @override
+  State<StatefulWidget> createState() => _TileMapState();
+}
+
+class _TileMapState extends State<TileMap> {
+
+  ui.Image? image;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImage();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return CustomPaint(
       painter: TileMapPainter(
-        mapData: mapData,
-        spriteMapPath: spriteMapPath,
-        tileSize: tileSize,
-        spriteMapColumns: spriteMapColumns,
-        scale: scale,
+        mapData: widget.mapData,
+        spriteMapPath: widget.spriteMapPath,
+        tileSize: widget.tileSize,
+        spriteMapColumns: widget.spriteMapColumns,
+        scale: widget.scale,
+        image: image,
       ),
       size: Size(
-        columns * tileSize * scale,
-        rows * tileSize * scale,
+        widget.columns * widget.tileSize * widget.scale,
+        widget.rows * widget.tileSize * widget.scale,
       ),
     );
+  }
+
+  Future<void> _loadImage() async {
+    final ByteData data = await rootBundle.load('assets/${widget.spriteMapPath}');
+    final Uint8List bytes = data.buffer.asUint8List();
+    image = await decodeImageFromList(bytes);
+    setState(() {});
   }
 }
 
@@ -45,10 +69,7 @@ class TileMapPainter extends CustomPainter {
   final int spriteMapColumns;
   final double scale;
   
-  // Image cache
-  ImageProvider? _imageProvider;
-  ui.Image? _cachedImage;
-  bool _isImageLoaded = false;
+  ui.Image? image;
 
   TileMapPainter({
     required this.mapData,
@@ -56,18 +77,13 @@ class TileMapPainter extends CustomPainter {
     required this.tileSize,
     required this.spriteMapColumns,
     required this.scale,
-  }) {
-    _imageProvider = AssetImage(spriteMapPath);
-  }
-
+    required this.image,
+  });
+    
   @override
   void paint(Canvas canvas, Size size) {
-    if (!_isImageLoaded) {
-      _loadImage();
-      return; // Skip this paint cycle and wait for image to load
-    }
-    
     final Paint paint = Paint();
+    if (image == null) return;
     
     // Draw each layer in order (bottom to top)
     for (int layer = 0; layer < mapData.length; layer++) {
@@ -96,7 +112,7 @@ class TileMapPainter extends CustomPainter {
           );
           
           canvas.drawImageRect(
-            _cachedImage!,
+            image!,
             src,
             dst,
             paint,
@@ -106,23 +122,7 @@ class TileMapPainter extends CustomPainter {
     }
   }
 
-  void _loadImage() {
-    if (_imageProvider != null) {
-      final ImageStream stream = _imageProvider!.resolve(ImageConfiguration.empty);
-      stream.addListener(ImageStreamListener((ImageInfo info, bool _) {
-        _cachedImage = info.image; // Directly store the ui.Image
-        _isImageLoaded = true;
-      }));
-    }
-  }
-
   @override
-  bool shouldRepaint(TileMapPainter oldDelegate) {
-    return oldDelegate.mapData != mapData ||
-        oldDelegate.spriteMapPath != spriteMapPath ||
-        oldDelegate.tileSize != tileSize ||
-        oldDelegate.spriteMapColumns != spriteMapColumns ||
-        oldDelegate.scale != scale;
-  }
+  bool shouldRepaint(TileMapPainter oldDelegate) => true; // Always repaint until image is loaded
 }
 

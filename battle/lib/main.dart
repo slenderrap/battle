@@ -1,3 +1,4 @@
+import 'package:battle/Providers/app_data.dart';
 import 'package:battle/Scenes/GameScene.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -5,7 +6,9 @@ import 'package:provider/provider.dart';
 
 void main() {
   runApp(MultiProvider(
-    providers: [],
+    providers: [
+      ChangeNotifierProvider(create: (_) => AppData()),
+    ],
     child: const MainApp(),
   ));
 }
@@ -16,15 +19,8 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: GameScene(),
-    );
+    );  
   }
 }
-
-// TODO:
-
-// 2. Game Scene
-// 3. Input system
-// 4. ServerUtils
-// 5. Test TileMap
-
