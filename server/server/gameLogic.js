@@ -1,14 +1,11 @@
 'use strict';
 import Player from './Player.js';
 
-const COLORS = ['green', 'blue', 'orange', 'red', 'purple'];
-const OBJECT_WIDTH = 0.075;
-const OBJECT_HEIGHT = 0.025;
 const SPEED = 0.2;
-const INITIAL_RADIUS = 0.05;
 const INITIAL_HEALTH = 100;
 const INITIAL_ATTACK = 10;
 const INITIAL_DEFENSE = 5;
+const MAP_SIZE = { width: 20, height: 20 };
 
 const DIRECTIONS = {
     "up":         { dx: 0, dy: -1 },
@@ -24,31 +21,17 @@ const DIRECTIONS = {
 
 class GameLogic {
     constructor() {
-        this.objects = [];
         this.players = new Map();
-
-        // Rectangles que mou el servidor
-        for (let i = 0; i < 10; i++) {
-            this.objects.push({
-                x: Math.random() * (1 - OBJECT_WIDTH),
-                y: Math.random() * (1 - OBJECT_HEIGHT),
-                width: OBJECT_WIDTH,
-                height: OBJECT_HEIGHT,
-                speed: SPEED,
-                direction: Math.random() > 0.5 ? 1 : -1
-            });
-        }
     }
 
     // Es connecta un client/jugador
     addClient(id) {
         let pos = this.getValidPosition();
-        let color = this.getAvailableColor();
         const newPlayer = new Player(
             id,
             pos.x, 
             pos.y,
-            none,
+            DIRECTIONS["none"],
             INITIAL_HEALTH,  
             INITIAL_ATTACK,  
             INITIAL_DEFENSE, 
@@ -56,7 +39,6 @@ class GameLogic {
         );
         
         this.players.set(id, newPlayer);
-
         return newPlayer;
     }
 
@@ -70,14 +52,34 @@ class GameLogic {
         try {
           let obj = JSON.parse(msg);
           if (!obj.type) return;
+          let player = this.players.get(id);
+          if (!player) return;
+          let data = obj.data;
           switch (obj.type) {
             case "direction":
-              if (this.players.has(id) && DIRECTIONS[obj.value]) {
-                this.players.get(id).direction = obj.value;
-              }
-              break;
+                let direction = DIRECTIONS[data.direction];
+                if (direction) {
+                    player.setDirection(direction);
+                }
+                break;
+            case "attack":
+                let otherPlayer = null;
+                let AttackingPlayerX = player.x;
+                let AttackingPlayerY = player.y;
+                if (player.direction === "none") break;
+                let directionVector = DIRECTIONS[player.direction];
+                if (!directionVector) break;
+                for (p of this.players.values()) {
+                    if (p.id === id) continue;
+                    if (p.x === AttackingPlayerX + directionVector.dx && p.y === AttackingPlayerY + directionVector.dy) {
+                        otherPlayer = p;
+                        break;
+                    }
+                }
+                if (!otherPlayer) break;
+                otherPlayer.takeDamage(player.attack);
             default:
-              break;
+                break;
           }
         } catch (error) {}
     }
@@ -86,85 +88,27 @@ class GameLogic {
     updateGame(fps) {
         let deltaTime = 1 / fps;
 
-        // Actualitzar la posició dels objectes (rectangles negres)
-        this.objects.forEach(obj => {
-            obj.x += obj.speed * obj.direction * deltaTime;
-            if (obj.x <= 0 || obj.x + obj.width >= 1) {
-                obj.direction *= -1;
-            }
-        });
-
         // Actualitzar la posició dels clients
-        this.players.forEach(client => {
-            let moveVector = DIRECTIONS[client.direction];
-            client.x = Math.max(0, Math.min(1, client.x + client.speed * moveVector.dx * deltaTime));
-            client.y = Math.max(0, Math.min(1, client.y + client.speed * moveVector.dy * deltaTime));
-
-            // Detectar colisions
-            this.objects = this.objects.filter(obj => {
-                if (this.isCircleRectColliding(client.x, client.y, client.radius, obj.x, obj.y, obj.width, obj.height)) {
-                    client.radius *= 1.1;
-                    client.speed *= 1.05;
-                    return false;
-                }
-                return true;
-            });
+        this.players.forEach(player => {
+            let moveVector = DIRECTIONS[player.direction];
+            if (moveVector === "none")
+                return;
+            // Mover el client
+            player.move(moveVector.dx, moveVector.dy, deltaTime);
         });
     }
 
     // Obtenir una posició on no hi h ha ni objectes ni jugadors
     getValidPosition() {
-        let x, y;
-        let isValid = false;
-        while (!isValid) {
-            x = Math.random() * (1 - OBJECT_WIDTH);
-            y = Math.random() * (1 - OBJECT_HEIGHT);
-            isValid = true;
-
-            this.objects.forEach(obj => {
-                if (this.isCircleRectColliding(x, y, INITIAL_RADIUS, obj.x, obj.y, obj.width, obj.height)) {
-                    isValid = false;
-                }
-            });
-
-            this.players.forEach(client => {
-                if (this.isCircleCircleColliding(x, y, INITIAL_RADIUS, client.x, client.y, client.radius)) {
-                    isValid = false;
-                }
-            });
-        }
+        const isFirstPlayer = this.players.size === 0;
+        const x = isFirstPlayer ? 1 : MAP_SIZE.width - 2;
+        const y = Math.floor(Math.random() * (MAP_SIZE.height - 2)) + 1;
         return { x, y };
-    }
-
-    // Obtenir un color aleatori que no ha estat escollit abans
-    getAvailableColor() {
-        let assignedColors = new Set(Array.from(this.players.values()).map(client => client.color));
-        let availableColors = COLORS.filter(color => !assignedColors.has(color));
-        return availableColors.length > 0 
-          ? availableColors[Math.floor(Math.random() * availableColors.length)]
-          : COLORS[Math.floor(Math.random() * COLORS.length)];
-    }
-
-    // Detectar si un cercle i un rectangle es sobreposen
-    isCircleRectColliding(cx, cy, r, rx, ry, rw, rh) {
-        let closestX = Math.max(rx, Math.min(cx, rx + rw));
-        let closestY = Math.max(ry, Math.min(cy, ry + rh));
-        let dx = cx - closestX;
-        let dy = cy - closestY;
-        return (dx * dx + dy * dy) <= (r * r);
-    }
-
-    // Detectar si dos cercles es sobreposen
-    isCircleCircleColliding(x1, y1, r1, x2, y2, r2) {
-        let dx = x1 - x2;
-        let dy = y1 - y2;
-        return (dx * dx + dy * dy) <= ((r1 + r2) * (r1 + r2));
     }
 
     // Retorna l'estat del joc (per enviar-lo als clients/jugadors)
     getGameState() {
         return {
-            objects: this.objects,
             players: Array.from(this.players.values())
         };
     }
