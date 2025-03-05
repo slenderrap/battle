@@ -1,10 +1,14 @@
 'use strict';
+import Player from './Player.js';
 
 const COLORS = ['green', 'blue', 'orange', 'red', 'purple'];
 const OBJECT_WIDTH = 0.075;
 const OBJECT_HEIGHT = 0.025;
 const SPEED = 0.2;
 const INITIAL_RADIUS = 0.05;
+const INITIAL_HEALTH = 100;
+const INITIAL_ATTACK = 10;
+const INITIAL_DEFENSE = 5;
 
 const DIRECTIONS = {
     "up":         { dx: 0, dy: -1 },
@@ -40,18 +44,19 @@ class GameLogic {
     addClient(id) {
         let pos = this.getValidPosition();
         let color = this.getAvailableColor();
-
-        this.players.set(id, {
+        const newPlayer = new Player(
             id,
-            x: pos.x,
-            y: pos.y,
-            speed: SPEED,
-            direction: "none",
-            color,
-            radius: INITIAL_RADIUS
-        });
+            pos.x, 
+            pos.y,
+            INITIAL_HEALTH,  
+            INITIAL_ATTACK,  
+            INITIAL_DEFENSE, 
+            SPEED 
+        );
+        
+        this.players.set(id, newPlayer);
 
-        return this.players.get(id);
+        return newPlayer;
     }
 
     // Es desconnecta un client/jugador

@@ -1,5 +1,9 @@
 class Player {
-    constructor(health, attack, defense, position, speed) {
+    constructor(id, x, y, direction, health, attack, defense, speed) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.direction = direction;
         this.health = health;
         this.attack = attack;
         this.defense = defense;
@@ -24,6 +28,14 @@ class Player {
 
     setPosition(x, y) {
         this.position = { x, y };
+    }
+    setDirection(direction) {
+        this.direction = direction;
+    }
+
+    move(dx, dy, deltaTime) {
+        this.x = Math.max(0, Math.min(1, this.x + this.speed * dx * deltaTime));
+        this.y = Math.max(0, Math.min(1, this.y + this.speed * dy * deltaTime));
     }
 
     getStats() {
