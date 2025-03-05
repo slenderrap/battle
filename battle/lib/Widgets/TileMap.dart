@@ -19,16 +19,13 @@ class TileMap extends StatefulWidget {
     this.scale = 1.0,
   }) : super(key: key);
 
-  int get rows => mapData.isNotEmpty && mapData[0].isNotEmpty ? mapData[0].length : 0;
-  int get columns => mapData.isNotEmpty && mapData[0].isNotEmpty && mapData[0][0].isNotEmpty ? mapData[0][0].length : 0;
-
   @override
-  State<StatefulWidget> createState() => _TileMapState();
+  State<TileMap> createState() => _TileMapState();
 }
 
 class _TileMapState extends State<TileMap> {
-
   ui.Image? image;
+  bool _isImageLoaded = false;
 
   @override
   void initState() {
@@ -36,20 +33,29 @@ class _TileMapState extends State<TileMap> {
     _loadImage();
   }
 
+  int get rows => widget.mapData.isNotEmpty && widget.mapData[0].isNotEmpty ? widget.mapData[0].length : 0;
+  int get columns => widget.mapData.isNotEmpty && widget.mapData[0].isNotEmpty && widget.mapData[0][0].isNotEmpty ? widget.mapData[0][0].length : 0;
+
   @override
   Widget build(BuildContext context) {
+    if (!_isImageLoaded) {
+      return SizedBox(
+        width: columns * widget.tileSize * widget.scale,
+        height: rows * widget.tileSize * widget.scale,
+      );
+    }
+
     return CustomPaint(
       painter: TileMapPainter(
         mapData: widget.mapData,
-        spriteMapPath: widget.spriteMapPath,
+        image: image!,
         tileSize: widget.tileSize,
         spriteMapColumns: widget.spriteMapColumns,
         scale: widget.scale,
-        image: image,
       ),
       size: Size(
-        widget.columns * widget.tileSize * widget.scale,
-        widget.rows * widget.tileSize * widget.scale,
+        columns * widget.tileSize * widget.scale,
+        rows * widget.tileSize * widget.scale,
       ),
     );
   }
@@ -64,22 +70,19 @@ class _TileMapState extends State<TileMap> {
 
 class TileMapPainter extends CustomPainter {
   final List<List<List<int>>> mapData;
-  final String spriteMapPath;
+  final ui.Image image;
   final int tileSize;
   final int spriteMapColumns;
   final double scale;
-  
-  ui.Image? image;
 
   TileMapPainter({
     required this.mapData,
-    required this.spriteMapPath,
+    required this.image,
     required this.tileSize,
     required this.spriteMapColumns,
     required this.scale,
-    required this.image,
   });
-    
+
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint();
@@ -98,7 +101,7 @@ class TileMapPainter extends CustomPainter {
           
           final Rect src = Rect.fromLTWH(
             spriteCol * tileSize * 1.0,
-            spriteRow * tileSize  * 1.0,
+            spriteRow * tileSize * 1.0,
             tileSize * 1.0,
             tileSize * 1.0,
           );
@@ -112,7 +115,7 @@ class TileMapPainter extends CustomPainter {
           );
           
           canvas.drawImageRect(
-            image!,
+            image,
             src,
             dst,
             paint,
@@ -123,6 +126,12 @@ class TileMapPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(TileMapPainter oldDelegate) => true; // Always repaint until image is loaded
+  bool shouldRepaint(TileMapPainter oldDelegate) {
+    return oldDelegate.mapData != mapData ||
+        oldDelegate.image != image ||
+        oldDelegate.tileSize != tileSize ||
+        oldDelegate.spriteMapColumns != spriteMapColumns ||
+        oldDelegate.scale != scale;
+  }
 }
 
