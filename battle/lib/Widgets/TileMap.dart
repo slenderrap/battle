@@ -4,7 +4,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 class TileMap extends StatefulWidget {
-class TileMap extends StatefulWidget {
   final List<List<List<int>>> mapData;
   final String spriteMapPath;
   final int tileSize;
@@ -25,24 +24,13 @@ class TileMap extends StatefulWidget {
 }
 
 class _TileMapState extends State<TileMap> {
-  ui.Image? _cachedImage;
+  ui.Image? image;
   bool _isImageLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _loadImage();
-  }
-
-  void _loadImage() {
-    final ImageProvider imageProvider = AssetImage(widget.spriteMapPath);
-    final ImageStream stream = imageProvider.resolve(ImageConfiguration.empty);
-    stream.addListener(ImageStreamListener((ImageInfo info, bool _) {
-      setState(() {
-        _cachedImage = info.image;
-        _isImageLoaded = true;
-      });
-    }));
   }
 
   int get rows => widget.mapData.isNotEmpty && widget.mapData[0].isNotEmpty ? widget.mapData[0].length : 0;
@@ -60,7 +48,7 @@ class _TileMapState extends State<TileMap> {
     return CustomPaint(
       painter: TileMapPainter(
         mapData: widget.mapData,
-        cachedImage: _cachedImage!,
+        image: image!,
         tileSize: widget.tileSize,
         spriteMapColumns: widget.spriteMapColumns,
         scale: widget.scale,
@@ -82,14 +70,14 @@ class _TileMapState extends State<TileMap> {
 
 class TileMapPainter extends CustomPainter {
   final List<List<List<int>>> mapData;
-  final ui.Image cachedImage;
+  final ui.Image image;
   final int tileSize;
   final int spriteMapColumns;
   final double scale;
 
   TileMapPainter({
     required this.mapData,
-    required this.cachedImage,
+    required this.image,
     required this.tileSize,
     required this.spriteMapColumns,
     required this.scale,
@@ -127,7 +115,7 @@ class TileMapPainter extends CustomPainter {
           );
           
           canvas.drawImageRect(
-            cachedImage,
+            image,
             src,
             dst,
             paint,
@@ -140,7 +128,7 @@ class TileMapPainter extends CustomPainter {
   @override
   bool shouldRepaint(TileMapPainter oldDelegate) {
     return oldDelegate.mapData != mapData ||
-        oldDelegate.cachedImage != cachedImage ||
+        oldDelegate.image != image ||
         oldDelegate.tileSize != tileSize ||
         oldDelegate.spriteMapColumns != spriteMapColumns ||
         oldDelegate.scale != scale;
