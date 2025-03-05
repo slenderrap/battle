@@ -1,6 +1,9 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 
+class TileMap extends StatefulWidget {
 class TileMap extends StatefulWidget {
   final List<List<List<int>>> mapData;
   final String spriteMapPath;
@@ -68,6 +71,13 @@ class _TileMapState extends State<TileMap> {
       ),
     );
   }
+
+  Future<void> _loadImage() async {
+    final ByteData data = await rootBundle.load('assets/${widget.spriteMapPath}');
+    final Uint8List bytes = data.buffer.asUint8List();
+    image = await decodeImageFromList(bytes);
+    setState(() {});
+  }
 }
 
 class TileMapPainter extends CustomPainter {
@@ -88,6 +98,7 @@ class TileMapPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint();
+    if (image == null) return;
     
     // Draw each layer in order (bottom to top)
     for (int layer = 0; layer < mapData.length; layer++) {

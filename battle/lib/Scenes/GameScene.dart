@@ -11,7 +11,21 @@ class GameScene extends StatefulWidget {
 
 class _GameSceneState extends State<GameScene> {
   //TODO: change to a provider
-  final List<List<List<int>>> map = const [];
+  final List<List<List<int>>> map = [
+    // Single layer with just one tile
+    [
+      [0, 0, 0, 0, 0],
+      [0, 1, 1, 1, 0],
+      [0, 1, 1, 1, 0],
+      [0, 0, 0, 0, 0],
+    ],
+    [
+      [-1, -1, -1, -1, -1],
+      [-1, -1, 5, -1, -1],
+      [-1, -1, -1, -1, 1],
+      [-1, -1, -1, -1, -1],
+    ]
+  ];
 
   void _handleKeyEvent(KeyEvent event) {
     if (event is KeyDownEvent) {
@@ -39,12 +53,13 @@ class _GameSceneState extends State<GameScene> {
       autofocus: true,
       onKeyEvent: _handleKeyEvent,
       child: Scaffold(
+        backgroundColor: Colors.black, // Changed from purple to black
         body: Center(
-          child: TileMap(
+          child: TileMap( // Removed the Container with yellow border
             mapData: map,
-            spriteMapPath: 'assets/tileset.png',
-            tileSize: 32,
-            spriteMapColumns: 10,
+            spriteMapPath: 'tileset_0.png',
+            tileSize: 16,
+            spriteMapColumns: 21,
             scale: 2.0,
           ),
         ),
