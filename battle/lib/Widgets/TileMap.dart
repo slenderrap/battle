@@ -34,16 +34,11 @@ class _TileMapState extends State<TileMap> {
   }
 
   Future<void> _loadImage() async {
-    print("1");
     final ByteData data = await rootBundle.load('assets/${widget.spriteMapPath}');
-    print("2");
     final Uint8List bytes = data.buffer.asUint8List();
-    print("3");
     image = await decodeImageFromList(bytes);
     _isImageLoaded = true;
-    print("4");
     setState(() {});
-    print("5");
   }
 
   int get rows => widget.mapData.isNotEmpty && widget.mapData[0].isNotEmpty ? widget.mapData[0].length : 0;

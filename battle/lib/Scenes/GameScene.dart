@@ -1,31 +1,31 @@
+import 'package:battle/Providers/TilemapProvider.dart';
 import 'package:battle/Widgets/TileMap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart';
 
 class GameScene extends StatefulWidget {
   const GameScene({super.key});
+  static const int _TILE_SET_COLUMNS = 21;
+  static const double _TILE_MAP_SCALE = 2.0;
 
   @override
   State<GameScene> createState() => _GameSceneState();
 }
 
 class _GameSceneState extends State<GameScene> {
-  //TODO: change to a provider
-  final List<List<List<int>>> map = [
-    // Single layer with just one tile
-    [
-      [0, 0, 0, 0, 0],
-      [0, 1, 1, 1, 0],
-      [0, 1, 1, 1, 0],
-      [0, 0, 0, 0, 0],
-    ],
-    [
-      [-1, -1, -1, -1, -1],
-      [-1, -1, 5, -1, -1],
-      [-1, -1, -1, -1, 1],
-      [-1, -1, -1, -1, -1],
-    ]
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Ensure the tilemap data is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final tilemapProvider = Provider.of<TilemapProvider>(context, listen: false);
+      if (!tilemapProvider.isLoaded) {
+        tilemapProvider.loadTilemapData();
+      }
+    });
+  }
 
   void _handleKeyEvent(KeyEvent event) {
     if (event is KeyDownEvent) {
@@ -53,15 +53,51 @@ class _GameSceneState extends State<GameScene> {
       autofocus: true,
       onKeyEvent: _handleKeyEvent,
       child: Scaffold(
-        backgroundColor: Colors.black, // Changed from purple to black
-        body: Center(
-          child: TileMap( // Removed the Container with yellow border
-            mapData: map,
-            spriteMapPath: 'tileset_0.png',
-            tileSize: 16,
-            spriteMapColumns: 21,
-            scale: 2.0,
-          ),
+        backgroundColor: Colors.black,
+        body: Consumer<TilemapProvider>(
+          builder: (context, tilemapProvider, child) {
+            if (!tilemapProvider.isLoaded) {
+              return const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Loading tilemap...', style: TextStyle(color: Colors.white)),
+                  ],
+                ),
+              );
+            }
+
+            if (tilemapProvider.tileMaps.isEmpty) {
+              if (kDebugMode) {
+                print('No tilemap data available. Attempting to reload...');
+                // Try to reload the data
+                Future.delayed(Duration.zero, () {
+                  tilemapProvider.loadTilemapData();
+                });
+              }
+              
+              return const Center(
+                child: Text('No tilemap data available', style: TextStyle(color: Colors.white)),
+              );
+            }
+            
+            if (kDebugMode) {
+              print('Rendering tilemap with ${tilemapProvider.tileMaps.length} layers');
+              print('Using tileset: ${tilemapProvider.tilesSheetFile}');
+            }
+            
+            return Center(
+              child: TileMap(
+                mapData: tilemapProvider.tileMaps,
+                spriteMapPath: tilemapProvider.tilesSheetFile,
+                tileSize: tilemapProvider.tileWidth,
+                spriteMapColumns: GameScene._TILE_SET_COLUMNS,
+                scale: GameScene._TILE_MAP_SCALE,
+              ),
+            );
+          },
         ),
       ),
     );
