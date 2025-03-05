@@ -48,6 +48,7 @@ class GameLogic {
             id,
             pos.x, 
             pos.y,
+            none,
             INITIAL_HEALTH,  
             INITIAL_ATTACK,  
             INITIAL_DEFENSE, 
