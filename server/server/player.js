@@ -7,7 +7,6 @@ class Player {
         this.health = health;
         this.attack = attack;
         this.defense = defense;
-        this.position = position;
         this.speed = speed;
     }
 
@@ -34,8 +33,9 @@ class Player {
     }
 
     move(dx, dy, deltaTime) {
-        this.x = Math.max(0, Math.min(1, this.x + this.speed * dx * deltaTime));
-        this.y = Math.max(0, Math.min(1, this.y + this.speed * dy * deltaTime));
+        this.x += this.speed * dx * deltaTime;
+        this.y += this.speed * dy * deltaTime;
+
     }
 
     getStats() {
