@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:ui' as ui;
+import 'package:battle/Utils/utils_websockets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'utils_websockets.dart';
 
 class AppData extends ChangeNotifier {
   // Atributs per gestionar la connexió

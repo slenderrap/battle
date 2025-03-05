@@ -1,7 +1,7 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
-class TileMap extends StatelessWidget {
+class TileMap extends StatefulWidget {
   final List<List<List<int>>> mapData;
   final String spriteMapPath;
   final int tileSize;
@@ -17,22 +17,54 @@ class TileMap extends StatelessWidget {
     this.scale = 1.0,
   }) : super(key: key);
 
-  int get rows => mapData.isNotEmpty && mapData[0].isNotEmpty ? mapData[0].length : 0;
-  int get columns => mapData.isNotEmpty && mapData[0].isNotEmpty && mapData[0][0].isNotEmpty ? mapData[0][0].length : 0;
+  @override
+  State<TileMap> createState() => _TileMapState();
+}
+
+class _TileMapState extends State<TileMap> {
+  ui.Image? _cachedImage;
+  bool _isImageLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImage();
+  }
+
+  void _loadImage() {
+    final ImageProvider imageProvider = AssetImage(widget.spriteMapPath);
+    final ImageStream stream = imageProvider.resolve(ImageConfiguration.empty);
+    stream.addListener(ImageStreamListener((ImageInfo info, bool _) {
+      setState(() {
+        _cachedImage = info.image;
+        _isImageLoaded = true;
+      });
+    }));
+  }
+
+  int get rows => widget.mapData.isNotEmpty && widget.mapData[0].isNotEmpty ? widget.mapData[0].length : 0;
+  int get columns => widget.mapData.isNotEmpty && widget.mapData[0].isNotEmpty && widget.mapData[0][0].isNotEmpty ? widget.mapData[0][0].length : 0;
 
   @override
   Widget build(BuildContext context) {
+    if (!_isImageLoaded) {
+      return SizedBox(
+        width: columns * widget.tileSize * widget.scale,
+        height: rows * widget.tileSize * widget.scale,
+      );
+    }
+
     return CustomPaint(
       painter: TileMapPainter(
-        mapData: mapData,
-        spriteMapPath: spriteMapPath,
-        tileSize: tileSize,
-        spriteMapColumns: spriteMapColumns,
-        scale: scale,
+        mapData: widget.mapData,
+        cachedImage: _cachedImage!,
+        tileSize: widget.tileSize,
+        spriteMapColumns: widget.spriteMapColumns,
+        scale: widget.scale,
       ),
       size: Size(
-        columns * tileSize * scale,
-        rows * tileSize * scale,
+        columns * widget.tileSize * widget.scale,
+        rows * widget.tileSize * widget.scale,
       ),
     );
   }
@@ -40,33 +72,21 @@ class TileMap extends StatelessWidget {
 
 class TileMapPainter extends CustomPainter {
   final List<List<List<int>>> mapData;
-  final String spriteMapPath;
+  final ui.Image cachedImage;
   final int tileSize;
   final int spriteMapColumns;
   final double scale;
-  
-  // Image cache
-  ImageProvider? _imageProvider;
-  ui.Image? _cachedImage;
-  bool _isImageLoaded = false;
 
   TileMapPainter({
     required this.mapData,
-    required this.spriteMapPath,
+    required this.cachedImage,
     required this.tileSize,
     required this.spriteMapColumns,
     required this.scale,
-  }) {
-    _imageProvider = AssetImage(spriteMapPath);
-  }
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (!_isImageLoaded) {
-      _loadImage();
-      return; // Skip this paint cycle and wait for image to load
-    }
-    
     final Paint paint = Paint();
     
     // Draw each layer in order (bottom to top)
@@ -82,7 +102,7 @@ class TileMapPainter extends CustomPainter {
           
           final Rect src = Rect.fromLTWH(
             spriteCol * tileSize * 1.0,
-            spriteRow * tileSize  * 1.0,
+            spriteRow * tileSize * 1.0,
             tileSize * 1.0,
             tileSize * 1.0,
           );
@@ -96,7 +116,7 @@ class TileMapPainter extends CustomPainter {
           );
           
           canvas.drawImageRect(
-            _cachedImage!,
+            cachedImage,
             src,
             dst,
             paint,
@@ -106,20 +126,10 @@ class TileMapPainter extends CustomPainter {
     }
   }
 
-  void _loadImage() {
-    if (_imageProvider != null) {
-      final ImageStream stream = _imageProvider!.resolve(ImageConfiguration.empty);
-      stream.addListener(ImageStreamListener((ImageInfo info, bool _) {
-        _cachedImage = info.image; // Directly store the ui.Image
-        _isImageLoaded = true;
-      }));
-    }
-  }
-
   @override
   bool shouldRepaint(TileMapPainter oldDelegate) {
     return oldDelegate.mapData != mapData ||
-        oldDelegate.spriteMapPath != spriteMapPath ||
+        oldDelegate.cachedImage != cachedImage ||
         oldDelegate.tileSize != tileSize ||
         oldDelegate.spriteMapColumns != spriteMapColumns ||
         oldDelegate.scale != scale;
