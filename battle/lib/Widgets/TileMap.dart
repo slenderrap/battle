@@ -89,14 +89,12 @@ class TileMapPainter extends CustomPainter {
     final Paint paint = Paint();
     if (image == null) return;
     
-    // Draw each layer in order (bottom to top)
     for (int layer = 0; layer < mapData.length; layer++) {
       for (int row = 0; row < mapData[layer].length; row++) {
         for (int col = 0; col < mapData[layer][row].length; col++) {
           final int tileValue = mapData[layer][row][col];
-          if (tileValue < 0) continue; // Skip negative values (empty tiles)
+          if (tileValue < 0) continue; 
           
-          // Calculate source rectangle in the spritemap
           final int spriteRow = tileValue ~/ spriteMapColumns;
           final int spriteCol = tileValue % spriteMapColumns;
           
@@ -107,7 +105,6 @@ class TileMapPainter extends CustomPainter {
             tileSize * 1.0,
           );
           
-          // Calculate destination rectangle on the canvas
           final Rect dst = Rect.fromLTWH(
             col * tileSize * scale,
             row * tileSize * scale,
