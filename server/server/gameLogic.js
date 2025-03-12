@@ -23,7 +23,9 @@ fs.readFile('game_data.json', 'utf8', (err, data) => {
 if (err) {
     console.log("Error al leer json", err);
     return;
-}
+};
+})
+
 const json = JSON.parse(data);
 
 
@@ -137,7 +139,8 @@ class GameLogic {
         }
         console.log(`Coordenadas (${x}, ${y}) no están dentro de ninguna zona de agua o rocas`);
     }
-    
-}
+    }
+    module.exports = GameLogic;
 
-module.exports = GameLogic;
+
+
