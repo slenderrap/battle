@@ -86,6 +86,8 @@ class GameLogic {
                     if (p.x === AttackingPlayerX + directionVector.dx && p.y === AttackingPlayerY + directionVector.dy) {
                         otherPlayer = p;
                         break;
+                        case "heal":
+                            this.healPlayer(player, data.amount);
                     }
                 }
                 if (!otherPlayer) break;
