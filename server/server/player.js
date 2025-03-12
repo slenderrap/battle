@@ -63,8 +63,7 @@ class Player {
         };
     }
 
-
-    toString() {
+        toString() {
         return `Player [Health: ${this.health}, Attack: ${this.attack}, Defense: ${this.defense}, Position: (${this.x}, ${this.y}), Speed: ${this.speed}]`;
     }
 }

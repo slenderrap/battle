@@ -1,6 +1,6 @@
 'use strict';
 import Player from './Player.js';
-
+const fs = require('fs');
 const SPEED = 0.2;
 const INITIAL_HEALTH = 100;
 const INITIAL_ATTACK = 10;
@@ -19,9 +19,19 @@ const DIRECTIONS = {
     "none":       { dx: 0, dy: 0 }
 };
 
+fs.readFile('game_data.json', 'utf8', (err, data) => {
+if (err) {
+    console.log("Error al leer json", err);
+    return;
+}
+const json = JSON.parse(data);
+
+
+
 class GameLogic {
     constructor() {
         this.players = new Map();
+        this.zones = json.zones;
     }
 
     // Es connecta un client/jugador
@@ -112,6 +122,22 @@ class GameLogic {
             players: Array.from(this.players.values())
         };
     }
+
+    checkZone(x, y) {
+        for (const zone of this.zones) {
+            if (
+                x >= zone.x && x <= zone.x + zone.width && 
+                y >= zone.y && y <= zone.y + zone.height    
+            ) {
+                if (zone.type.includes("stone") || zone.type.includes("water")) {
+                    console.log(`Coordenadas (${x}, ${y}) están dentro de la zona: ${zone.type}`);
+                    return;
+                }
+            }
+        }
+        console.log(`Coordenadas (${x}, ${y}) no están dentro de ninguna zona de agua o rocas`);
+    }
+    
 }
 
 module.exports = GameLogic;
