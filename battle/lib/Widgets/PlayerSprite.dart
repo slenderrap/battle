@@ -149,16 +149,16 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
       );
     }
     
-    double currentX = _startX;
-    double currentY = _startY;
+    // Calculate positions once
+    final double startX = widget.player.displayX * widget.tileSize * widget.scale;
+    final double startY = widget.player.displayY * widget.tileSize * widget.scale;
+    final double targetX = widget.player.tileX * widget.tileSize * widget.scale;
+    final double targetY = widget.player.tileY * widget.tileSize * widget.scale;
+    
+    double currentX = startX;
+    double currentY = startY;
     
     if (widget.player.isMoving) {
-      // Recalculate these values every frame to ensure they're correct
-      final double startX = widget.player.displayX * widget.tileSize * widget.scale;
-      final double startY = widget.player.displayY * widget.tileSize * widget.scale;
-      final double targetX = widget.player.tileX * widget.tileSize * widget.scale;
-      final double targetY = widget.player.tileY * widget.tileSize * widget.scale;
-      
       currentX = startX + (targetX - startX) * _moveAnimation.value;
       currentY = startY + (targetY - startY) * _moveAnimation.value;
       
@@ -172,8 +172,11 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
         // Jump to final position
         currentX = targetX;
         currentY = targetY;
-        // Call onMoveComplete to update the player state
-        widget.onMoveComplete();
+        // Schedule the completion callback for the next frame
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          widget.onMoveComplete();
+          _currentFrame = 0;
+        });
       }
     }
    
@@ -218,12 +221,14 @@ class PlayerSpritePainter extends CustomPainter {
     
     // Select row based on direction
     int row;
+    bool reverse = false;
     switch (player.direction) {
       case Direction.down:
         row = 0;
         break;
       case Direction.left:
         row = 1;
+        reverse = true;
         break;
       case Direction.right:
         row = 2;
@@ -248,13 +253,20 @@ class PlayerSpritePainter extends CustomPainter {
       tileSize * scale,
       tileSize * scale,
     );
-    
+    if (reverse) {
+      canvas.save();
+      canvas.translate(tileSize * scale, 0);
+      canvas.scale(-1, 1);
+    }
     canvas.drawImageRect(
       image,
       src,
       dst,
       paint,
     );
+    if (reverse) {
+      canvas.restore();
+    }
   }
 
   @override

@@ -1,44 +1,39 @@
 'use strict';
-import Player from './Player.js';
 const fs = require('fs');
 const SPEED = 0.2;
 const INITIAL_HEALTH = 100;
 const INITIAL_ATTACK = 10;
 const INITIAL_DEFENSE = 5;
-const MAP_SIZE = { width: 20, height: 20 };
+const MAP_SIZE = { width: 32, height: 16 };
 
 const DIRECTIONS = {
     "up":         { dx: 0, dy: -1 },
-    "upLeft":     { dx: -1, dy: -1 },
     "left":       { dx: -1, dy: 0 },
-    "downLeft":   { dx: -1, dy: 1 },
     "down":       { dx: 0, dy: 1 },
-    "downRight":  { dx: 1, dy: 1 },
     "right":      { dx: 1, dy: 0 },
-    "upRight":    { dx: 1, dy: -1 },
-    "none":       { dx: 0, dy: 0 }
 };
 
 fs.readFile('game_data.json', 'utf8', (err, data) => {
-if (err) {
-    console.log("Error al leer json", err);
-    return;
-};
-})
+    if (err) {
+        console.log("Error al leer json", err);
+        return;
+    }
+    const json = JSON.parse(data);
+});
 
-const json = JSON.parse(data);
-
-
+const Player = require('./player.js');
 
 class GameLogic {
+    
+
     constructor() {
         this.players = new Map();
-        this.zones = json.zones;
+        this.zones = []; // Initialize empty, will be populated when file is read
     }
 
     // Es connecta un client/jugador
     addClient(id) {
-        let pos = this.getValidPosition();
+        let pos = this.getInitialPosition();
         const newPlayer = new Player(
             id,
             pos.x, 
@@ -81,22 +76,23 @@ class GameLogic {
                 if (player.direction === "none") break;
                 let directionVector = DIRECTIONS[player.direction];
                 if (!directionVector) break;
-                for (p of this.players.values()) {
+                for (let p of this.players.values()) {
                     if (p.id === id) continue;
                     if (p.x === AttackingPlayerX + directionVector.dx && p.y === AttackingPlayerY + directionVector.dy) {
                         otherPlayer = p;
                         break;
-                        case "heal":
-                            this.healPlayer(player, data.amount);
                     }
                 }
-                if (!otherPlayer) break;
-                otherPlayer.takeDamage(player.attack);
+                break;
+            case "heal":
+                this.healPlayer(player, data.amount);
+                break;
             default:
                 break;
           }
         } catch (error) {}
     }
+
 
     // Blucle de joc (funció que s'executa contínuament)
     updateGame(fps) {
@@ -105,7 +101,7 @@ class GameLogic {
         // Actualitzar la posició dels clients
         this.players.forEach(player => {
             let moveVector = DIRECTIONS[player.direction];
-            if (moveVector === "none")
+            if (!moveVector || player.direction === "none")
                 return;
             // Mover el client
             player.move(moveVector.dx, moveVector.dy, deltaTime);
@@ -113,17 +109,18 @@ class GameLogic {
     }
 
     // Obtenir una posició on no hi h ha ni objectes ni jugadors
-    getValidPosition() {
+    getInitialPosition() {
         const isFirstPlayer = this.players.size === 0;
         const x = isFirstPlayer ? 1 : MAP_SIZE.width - 2;
         const y = Math.floor(Math.random() * (MAP_SIZE.height - 2)) + 1;
         return { x, y };
     }
 
-    // Retorna l'estat del joc (per enviar-lo als clients/jugadors)
-    getGameState() {
+    // Retorna l'estat del joc (sense el objecte del client amb id playerId)
+    getGameState(playerId) {
         return {
-            players: Array.from(this.players.values())
+            clientPlayer: this.players.get(playerId),
+            otherPlayers: Array.from(this.players.values()).filter(player => player.id !== playerId)
         };
     }
 
@@ -133,16 +130,18 @@ class GameLogic {
                 x >= zone.x && x <= zone.x + zone.width && 
                 y >= zone.y && y <= zone.y + zone.height    
             ) {
-                if (zone.type.includes("stone") || zone.type.includes("water")) {
+                if (zone.type.includes("stone") || zone.type.includes("water") || zone.type.includes("tree")) {
                     console.log(`Coordenadas (${x}, ${y}) están dentro de la zona: ${zone.type}`);
-                    return;
+                    return false;
                 }
             }
         }
         console.log(`Coordenadas (${x}, ${y}) no están dentro de ninguna zona de agua o rocas`);
+        return true;
     }
-    }
-    module.exports = GameLogic;
+}
+
+module.exports = GameLogic;
 
 
 
