@@ -86,17 +86,18 @@ class GameLogic {
                     if (p.x === AttackingPlayerX + directionVector.dx && p.y === AttackingPlayerY + directionVector.dy) {
                         otherPlayer = p;
                         break;
-                        case "heal":
-                            this.healPlayer(player, data.amount);
                     }
                 }
-                if (!otherPlayer) break;
-                otherPlayer.takeDamage(player.attack);
+                break;
+            case "heal":
+                this.healPlayer(player, data.amount);
+                break;
             default:
                 break;
           }
         } catch (error) {}
     }
+
 
     // Blucle de joc (funció que s'executa contínuament)
     updateGame(fps) {
@@ -141,8 +142,9 @@ class GameLogic {
         }
         console.log(`Coordenadas (${x}, ${y}) no están dentro de ninguna zona de agua o rocas`);
     }
-    }
-    module.exports = GameLogic;
+}
+
+module.exports = GameLogic;
 
 
 
