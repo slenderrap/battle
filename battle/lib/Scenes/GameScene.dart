@@ -36,22 +36,7 @@ class _GameSceneState extends State<GameScene> {
         GameScene._TILE_MAP_SCALE,
       );
 
-      playerProvider.addPlayer(Player(
-        id: 'local',
-        tileX: 0,
-        tileY: 0,
-        direction: Direction.down,
-      ));
-      playerProvider.setLocalPlayer('local');
-      //TestTileChange();
     });
-  }
-
-  Future<void> TestTileChange() async {
-    await Future.delayed(const Duration(seconds: 2));
-    final tilemapProvider = GetIt.I<TilemapProvider>();
-    print('Changing tile at 0,0 to 7');
-    tilemapProvider.setTile(0, 0, 0, 7);
   }
 
   void _handleKeyEvent(KeyEvent event) {
@@ -64,16 +49,16 @@ class _GameSceneState extends State<GameScene> {
       
       switch (event.logicalKey) {
         case LogicalKeyboardKey.arrowUp:
-          playerProvider.tryMovePlayer(localPlayer.id, Direction.up);
+          playerProvider.MovePlayer(localPlayer.id, Direction.up);
           break;
         case LogicalKeyboardKey.arrowDown:
-          playerProvider.tryMovePlayer(localPlayer.id, Direction.down);
+          playerProvider.MovePlayer(localPlayer.id, Direction.down);
           break;
         case LogicalKeyboardKey.arrowLeft:
-          playerProvider.tryMovePlayer(localPlayer.id, Direction.left);
+          playerProvider.MovePlayer(localPlayer.id, Direction.left);
           break;
         case LogicalKeyboardKey.arrowRight:
-          playerProvider.tryMovePlayer(localPlayer.id, Direction.right);
+          playerProvider.MovePlayer(localPlayer.id, Direction.right);
           break;
         case LogicalKeyboardKey.space:
           // You can implement an action here if needed
@@ -106,22 +91,12 @@ class _GameSceneState extends State<GameScene> {
             }
 
             if (tilemapProvider.tileMaps.isEmpty) {
-              if (kDebugMode) {
-                print('No tilemap data available. Attempting to reload...');
-                Future.delayed(Duration.zero, () {
-                  tilemapProvider.loadTilemapData();
-                });
-              }
               
               return const Center(
                 child: Text('No tilemap data available', style: TextStyle(color: Colors.white)),
               );
             }
-            
-            if (kDebugMode) {
-              print('Rendering tilemap with ${tilemapProvider.tileMaps.length} layers');
-              print('Using tileset: ${tilemapProvider.tilesSheetFile}');
-            }
+          
             
             return Center(
               child: Stack(
@@ -135,7 +110,6 @@ class _GameSceneState extends State<GameScene> {
                     ),
                   
                   ...playerProvider.players.values.map((player) {
-                    print("player ${player.displayX}, ${player.displayY} to ${player.tileX}, ${player.tileY}");
                     return PlayerSprite(
                       player: player,
                       spriteSheetPath: 'pirate_walk.png',

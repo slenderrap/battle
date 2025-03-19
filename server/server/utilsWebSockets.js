@@ -78,12 +78,29 @@ class Obj {
         })
     }
 
+    //
+    sendTo(id, msg) {
+        var client = this.getClient(id)
+        if (client) {
+            client.send(msg)
+        }
+    }
+
     // A message is received from a websocket client
     newMessage(ws, id, bufferedMessage) {
         var messageAsString = bufferedMessage.toString()
         if (this.onMessage && typeof this.onMessage === "function") {
             this.onMessage(ws, id, messageAsString)
         }
+    }
+
+    getClient(id) {
+        for (let [client, metadata] of this.socketsClients.entries()) {
+            if (metadata.id === id) {
+                return client;
+            }
+        }
+        return null;
     }
 
     getClientData(id) {

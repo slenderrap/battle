@@ -26,7 +26,12 @@ ws.init(httpServer, port);
 
 ws.onConnection = (socket, id) => {
     if (debug) console.log("WebSocket client connected: " + id);
-    game.addClient(id);
+    const player = game.addClient(id);
+    // Send the id to the client
+    socket.send(JSON.stringify({ 
+        type: "connected",
+        data: game.getGameState(player.id)
+    }));
 };
 
 ws.onMessage = (socket, id, msg) => {
@@ -43,7 +48,9 @@ ws.onClose = (socket, id) => {
 // **Game Loop**
 gameLoop.run = (fps) => {
     game.updateGame(fps);
-    ws.broadcast(JSON.stringify({ type: "update", gameState: game.getGameState() }));
+    for (let player of game.players.values()) {
+        ws.sendTo(player.id, JSON.stringify({ type: "update", data: game.getGameState(player.id) }));
+    }
 };
 gameLoop.start();
 

@@ -44,7 +44,7 @@ class PlayerProvider extends ChangeNotifier {
     }
   }
 
-  void tryMovePlayer(String id, Direction direction) {
+  void MovePlayer(String id, Direction direction) {
     if (!_players.containsKey(id) || _players[id]!.isMoving) {
       print('Cannot move player $id: player not found or already moving');
       return;
@@ -71,7 +71,6 @@ class PlayerProvider extends ChangeNotifier {
         break;
     }
 
-    print('Moving player $id from (${player.tileX},${player.tileY}) to ($newTileX,$newTileY)');
     // Save the current position as the starting point for animation
     player.displayX = player.tileX.toDouble();
     player.displayY = player.tileY.toDouble();
@@ -80,7 +79,6 @@ class PlayerProvider extends ChangeNotifier {
     player.tileY = newTileY;
     player.state = PlayerState.walking;
     player.isMoving = true;
-    print('Player $id is now moving from (${player.displayX},${player.displayY}) to (${player.tileX},${player.tileY})');
     notifyListeners();
   }
 
@@ -116,5 +114,56 @@ class PlayerProvider extends ChangeNotifier {
       player.displayY = player.tileY.toDouble();
       notifyListeners();
     }
+  }
+
+  void checkPlayerHasMoved(Player player, int previousTileX, int previousTileY) {
+    if (player == null) return;
+    if (player.tileX != previousTileX || player.tileY != previousTileY) {
+      late Direction direction;
+      if (player.tileX < previousTileX) {
+        direction = Direction.left;
+      } else if (player.tileX > previousTileX) {
+        direction = Direction.right;
+      } else if (player.tileY < previousTileY) {
+        direction = Direction.up;
+      } else if (player.tileY > previousTileY) {
+        direction = Direction.down;
+      }
+      MovePlayer(player.id, direction);
+    }
+  }
+
+  void updatePlayers(Player localPlayer, List<Player> otherPlayers) {
+    // Check for movement
+    if (localPlayer == null) return;
+    checkPlayerHasMoved(localPlayer, this._localPlayer!.tileX, this._localPlayer!.tileY);
+    
+    for (Player otherPlayer in otherPlayers) {
+      if (players.containsKey(otherPlayer.id)) {
+        checkPlayerHasMoved(otherPlayer, players[otherPlayer.id]!.tileX, players[otherPlayer.id]!.tileY);
+      }
+    }
+    
+    //Check for new players
+    for (Player otherPlayer in otherPlayers) {
+      if (!players.containsKey(otherPlayer.id)) {
+        addPlayer(otherPlayer);
+      }
+    }
+    
+    //Check for deaths/disconnections - Fixed to avoid concurrent modification
+    List<String> idsToRemove = [];
+    for (String id in players.keys) {
+      if (id != localPlayer.id && !otherPlayers.any((player) => player.id == id)) {
+        idsToRemove.add(id);
+      }
+    }
+    
+    // Now remove the players after iteration is complete
+    for (String id in idsToRemove) {
+      removePlayer(id);
+    }
+    
+    notifyListeners();
   }
 } 

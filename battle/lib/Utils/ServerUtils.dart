@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
+import 'package:battle/Models/Player.dart';
+import 'package:battle/Providers/PlayerProvider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
@@ -17,7 +19,7 @@ class ServerUtils {
     try {
       _onDisconnect = onDisconnect;
       final uri = Uri.parse('ws://$host:$port');
-      _channel = IOWebSocketChannel.connect(uri);
+      _channel = await IOWebSocketChannel.connect(uri);
       print('Connected to server at $uri');
       
       _subscription = _channel!.stream.listen(
@@ -76,10 +78,34 @@ class ServerUtils {
   }
 
   static void _handleServerMessage(ServerMessage message) {
-    if (message.type == "update") {
-      final getIt = GetIt.instance;
-      // TODO: Handle update message
-      print("Update message received: ${message.data}");
+    final getIt = GetIt.instance;
+    final playerProvider = getIt.get<PlayerProvider>();
+    
+    if (message.type == "connected") {
+      print("Server message received of type ${message.type}: ${message.data}");
+      Map<String, dynamic> jsonData = message.data;
+      Player player = Player.fromJson(jsonData['clientPlayer']);
+      playerProvider.addPlayer(player);
+      playerProvider.setLocalPlayer(player.id);
+
+      for (Map<String, dynamic> otherPlayers in jsonData['otherPlayers']) {
+        Player otherPlayer = Player.fromJson(otherPlayers);
+        playerProvider.addPlayer(otherPlayer);
+      }
+    }
+    else if (message.type == "update") {
+      Map<String, dynamic> jsonData = message.data;
+      Player player = Player.fromJson(jsonData['clientPlayer']);
+      
+      List<Player> otherPlayersList = [];
+      if (jsonData['otherPlayers'] != null) {
+        for (var otherPlayerData in jsonData['otherPlayers']) {
+          Player otherPlayer = Player.fromJson(otherPlayerData);
+          otherPlayersList.add(otherPlayer);
+        }
+      }
+      
+      playerProvider.updatePlayers(player, otherPlayersList);
     }
   }
 }
