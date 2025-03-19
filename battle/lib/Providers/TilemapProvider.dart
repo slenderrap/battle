@@ -18,9 +18,6 @@ class TilemapProvider extends ChangeNotifier {
   Future<void> loadTilemapData() async {
     try {
       const String jsonPath = 'assets/game_data.json';
-      if (kDebugMode) {
-        print('Loading tilemap data from: $jsonPath');
-      }
       
       final String jsonData = await rootBundle.loadString(jsonPath);
       final Map<String, dynamic> data = json.decode(jsonData);
@@ -55,17 +52,11 @@ class TilemapProvider extends ChangeNotifier {
           }
           
           _isLoaded = true;
-          if (kDebugMode) {
-            print('Successfully loaded tilemap with ${_tileMaps.length} layers');
-            print('Using tileset: $_tilesSheetFile');
-          }
           notifyListeners();
         }
       }
     } catch (e) {
-      if (kDebugMode) {
         print('Error loading tilemap data: $e');
-      }
       _isLoaded = false;
     }
   }

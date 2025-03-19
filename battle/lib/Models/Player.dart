@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 
 enum Direction {
-  up,
+  up, 
   down,
   left,
   right,
+  none, //Used when a player is not moving
 }
 
 enum PlayerState {
@@ -38,12 +39,30 @@ class Player {
     displayX = tileX.toDouble(),
     displayY = tileY.toDouble();
 
+  static Direction _parseDirection(Map<String, dynamic> direction) {
+    if (direction['dx'] == 0 && direction['dy'] == 0) return Direction.none;
+    if (direction['dx'] == 0) {
+      if (direction['dy'] == 1) {
+        return Direction.up;
+      } else if (direction['dy'] == -1) {
+        return Direction.down;
+      }
+    } else if (direction['dy'] == 0) {
+      if (direction['dx'] == 1) {
+        return Direction.right;
+      } else if (direction['dx'] == -1) {
+        return Direction.left;
+      }
+    }
+    throw Exception('Invalid direction received from server: $direction');
+  }
+
   Player.fromJson(Map<String, dynamic> json) : 
     id = json['id'],
     tileX = json['x'],
     tileY = json['y'],
     health = json['health'],
-    direction = json['direction'] != null ? Direction.values[json['direction']] : Direction.down,
+    direction = Player._parseDirection(json['direction']),
     state = PlayerState.idle,
     frame = 0,
     displayX = json['x'].toDouble(),

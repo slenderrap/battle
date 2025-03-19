@@ -40,9 +40,6 @@ class MainApp extends StatelessWidget {
 }
 
 //TODO:
-// 4. Send Movement Commands to Server
-// 2. Add Attack Animation
-// 3. Send Attack Commands to Server
-// 4. Handle Update commands from the server
-// 5. Reder life bar
+// Add Attack
+// Reder life bar
 

@@ -44,7 +44,7 @@ class PlayerProvider extends ChangeNotifier {
     }
   }
 
-  void MovePlayer(String id, Direction direction) {
+  void movePlayer(String id, Direction direction) {
     if (!_players.containsKey(id) || _players[id]!.isMoving) {
       print('Cannot move player $id: player not found or already moving');
       return;
@@ -69,6 +69,8 @@ class PlayerProvider extends ChangeNotifier {
       case Direction.right:
         newTileX++;
         break;
+      case Direction.none:
+        return;
     }
 
     // Save the current position as the starting point for animation
@@ -107,7 +109,6 @@ class PlayerProvider extends ChangeNotifier {
   void completePlayerMovement(String id) {
     if (_players.containsKey(id)) {
       final player = _players[id]!;
-      print('Completing movement for player $id at position (${player.tileX},${player.tileY})');
       player.isMoving = false;
       player.state = PlayerState.idle;
       player.displayX = player.tileX.toDouble();
@@ -117,21 +118,29 @@ class PlayerProvider extends ChangeNotifier {
   }
 
   void checkPlayerHasMoved(Player player, int previousTileX, int previousTileY) {
-    if (player == null) return;
     if (player.tileX != previousTileX || player.tileY != previousTileY) {
-      late Direction direction;
-      if (player.tileX < previousTileX) {
-        direction = Direction.left;
-      } else if (player.tileX > previousTileX) {
+      Direction? direction;
+
+      if (previousTileX + 1 == player.tileX && previousTileY == player.tileY) {
         direction = Direction.right;
-      } else if (player.tileY < previousTileY) {
+      } else if (previousTileX == player.tileX && previousTileY - 1 == player.tileY) {
         direction = Direction.up;
-      } else if (player.tileY > previousTileY) {
+      } else if (previousTileX - 1 == player.tileX && previousTileY == player.tileY) {
+        direction = Direction.left;
+      } else if (previousTileX == player.tileX && previousTileY + 1 == player.tileY) {
         direction = Direction.down;
       }
-      MovePlayer(player.id, direction);
+
+      if (direction == null) {
+        // Sync position instead
+        print('Syncing position for player ${player.id}');
+        movePlayerToTile(player.id, player.tileX, player.tileY);
+      } else {
+        movePlayer(player.id, direction);
+      }
     }
   }
+
 
   void updatePlayers(Player localPlayer, List<Player> otherPlayers) {
     // Check for movement

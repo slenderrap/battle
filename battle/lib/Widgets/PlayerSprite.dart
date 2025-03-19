@@ -38,10 +38,7 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    _loadImage();
-    
-    print('PlayerSprite initState - Player: ${widget.player.id} at tile (${widget.player.tileX},${widget.player.tileY}) display (${widget.player.displayX},${widget.player.displayY})');
-    
+    _loadImage();    
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -68,20 +65,14 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
   
   @override
   void didUpdateWidget(PlayerSprite oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    
-    print('PlayerSprite didUpdateWidget - Player: ${widget.player.id} at tile (${widget.player.tileX},${widget.player.tileY}) display (${widget.player.displayX},${widget.player.displayY}) - isMoving: ${widget.player.isMoving}');
-    
+    super.didUpdateWidget(oldWidget);    
     // Force update position values whenever the widget updates if player is moving
     if (widget.player.isMoving) {
-      print('Player is moving, updating position values');
       _updatePositionValues();
       
       if (!_controller.isAnimating) {
-        print('Starting animation');
         _controller.reset();
         _controller.forward().then((_) {
-          print('Animation complete, calling onMoveComplete');
           widget.onMoveComplete();
         });
       }
@@ -90,7 +81,6 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
         oldWidget.player.displayX != widget.player.displayX ||
         oldWidget.player.displayY != widget.player.displayY) {
       
-      print('Position changed, updating position values');
       _updatePositionValues();
     }
     
@@ -119,9 +109,6 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
     _startY = displayY * widget.tileSize * widget.scale;
     _targetX = tileX * widget.tileSize * widget.scale;
     _targetY = tileY * widget.tileSize * widget.scale;
-    
-    print('Updated position values: Player at (${displayX},${displayY}) to (${tileX},${tileY})');
-    print('Calculated positions: start (${_startX},${_startY}) target (${_targetX},${_targetY})');
   }
 
   @override
@@ -160,15 +147,10 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
     
     if (widget.player.isMoving) {
       currentX = startX + (targetX - startX) * _moveAnimation.value;
-      currentY = startY + (targetY - startY) * _moveAnimation.value;
-      
-      print('Player is moving from (${startX},${startY}) to (${targetX},${targetY}) - Current: (${currentX},${currentY}) - Animation value: ${_moveAnimation.value}');
-      
+      currentY = startY + (targetY - startY) * _moveAnimation.value;      
       // Add threshold check to stop animation when close enough to target
       const double threshold = 0.95; // When animation is 95% complete
-      if (_moveAnimation.value >= threshold && _controller.isAnimating) {
-        print('Reached threshold, stopping animation and completing movement');
-        _controller.stop();
+      if (_moveAnimation.value >= threshold && _controller.isAnimating) {        _controller.stop();
         // Jump to final position
         currentX = targetX;
         currentY = targetY;

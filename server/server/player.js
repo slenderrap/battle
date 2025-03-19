@@ -10,6 +10,7 @@ class Player {
         this.speed = speed;
         this.subX = 0;
         this.subY = 0;
+        this.nextDirection = null;
     }
 
     takeDamage(amount) {
@@ -33,7 +34,23 @@ class Player {
     }
 
     setDirection(direction) {
+        if (this.direction.dx != 0 || this.direction.dy != 0) {
+            console.log("Direction already set, reserving for next move");
+            this.nextDirection = direction;
+            return;
+        }
+        console.log("Setting direction to: " + direction);
         this.direction = direction;
+        if (direction.dx > 0) {
+            this.subX = 0.75;
+        } else if (direction.dx < 0) {
+            this.subX = -0.75;
+        }
+        if (direction.dy > 0) {
+            this.subY = 0.75;
+        } else if (direction.dy < 0) {
+            this.subY = -0.75;
+        }
     }
     
     move(dx, dy, deltaTime) {
@@ -43,12 +60,23 @@ class Player {
         
         // Apply movement when accumulation is >= 1 or <= -1
         if (Math.abs(this.subX) >= 1) {
+            console.log("Moving player " + this.id + ", " + this.subX + ", " + this.subY);
             this.x += Math.trunc(this.subX);
             this.subX -= Math.trunc(this.subX);
+            if (this.nextDirection) {
+                this.direction = this.nextDirection;
+                this.nextDirection = null;
+            }
         }
         if (Math.abs(this.subY) >= 1) {
+            console.log("Moving player " + this.id + ", " + this.subX + ", " + this.subY);
             this.y += Math.trunc(this.subY);
             this.subY -= Math.trunc(this.subY);
+            this.hasMoved = true;
+            if (this.nextDirection) {
+                this.direction = this.nextDirection;
+                this.nextDirection = null;
+            }
         }
     }
 

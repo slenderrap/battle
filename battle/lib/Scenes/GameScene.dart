@@ -1,6 +1,8 @@
 import 'package:battle/Models/Player.dart';
+import 'package:battle/Models/ServerMessage.dart';
 import 'package:battle/Providers/PlayerProvider.dart';
 import 'package:battle/Providers/TilemapProvider.dart';
+import 'package:battle/Utils/ServerUtils.dart';
 import 'package:battle/Widgets/PlayerSprite.dart';
 import 'package:battle/Widgets/TileMap.dart';
 import 'package:flutter/material.dart';
@@ -49,22 +51,24 @@ class _GameSceneState extends State<GameScene> {
       
       switch (event.logicalKey) {
         case LogicalKeyboardKey.arrowUp:
-          playerProvider.MovePlayer(localPlayer.id, Direction.up);
+          ServerUtils.sendMessage(ServerMessage("direction", {"direction": "up"}));
           break;
         case LogicalKeyboardKey.arrowDown:
-          playerProvider.MovePlayer(localPlayer.id, Direction.down);
+          ServerUtils.sendMessage(ServerMessage("direction", {"direction": "down"}));
           break;
         case LogicalKeyboardKey.arrowLeft:
-          playerProvider.MovePlayer(localPlayer.id, Direction.left);
+          ServerUtils.sendMessage(ServerMessage("direction", {"direction": "left"}));
           break;
         case LogicalKeyboardKey.arrowRight:
-          playerProvider.MovePlayer(localPlayer.id, Direction.right);
+          ServerUtils.sendMessage(ServerMessage("direction", {"direction": "right"}));
           break;
         case LogicalKeyboardKey.space:
           // You can implement an action here if needed
           break;
-      }
-    }
+      } 
+    } else if (event is KeyUpEvent) {
+    ServerUtils.sendMessage(ServerMessage("direction", {"direction": "none"}));
+  }
   }
 
   @override

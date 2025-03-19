@@ -1,6 +1,6 @@
 'use strict';
 const fs = require('fs');
-const SPEED = 0.2;
+const SPEED = 1.2;
 const INITIAL_HEALTH = 100;
 const INITIAL_ATTACK = 10;
 const INITIAL_DEFENSE = 5;
@@ -11,6 +11,7 @@ const DIRECTIONS = {
     "left":       { dx: -1, dy: 0 },
     "down":       { dx: 0, dy: 1 },
     "right":      { dx: 1, dy: 0 },
+    "none":       { dx: 0, dy: 0 },
 };
 
 fs.readFile('game_data.json', 'utf8', (err, data) => {
@@ -33,11 +34,11 @@ class GameLogic {
 
     // Es connecta un client/jugador
     addClient(id) {
-        let pos = this.getInitialPosition();
+        let { x, y } = this.getInitialPosition();
         const newPlayer = new Player(
             id,
-            pos.x, 
-            pos.y,
+            x, 
+            y,
             DIRECTIONS["none"],
             INITIAL_HEALTH,  
             INITIAL_ATTACK,  
@@ -64,8 +65,14 @@ class GameLogic {
           let data = obj.data;
           switch (obj.type) {
             case "direction":
+                console.log("Received direction message from client: " + data.direction);
                 let direction = DIRECTIONS[data.direction];
                 if (direction) {
+                    const previusDirection = player.direction;
+                    if (previusDirection.dx === direction.dx && previusDirection.dy === direction.dy) {
+                        // Keep the same direction
+                        break;
+                    }
                     player.setDirection(direction);
                 }
                 break;
@@ -97,11 +104,10 @@ class GameLogic {
     // Blucle de joc (funció que s'executa contínuament)
     updateGame(fps) {
         let deltaTime = 1 / fps;
-
         // Actualitzar la posició dels clients
         this.players.forEach(player => {
-            let moveVector = DIRECTIONS[player.direction];
-            if (!moveVector || player.direction === "none")
+            let moveVector = player.direction;
+            if (!moveVector || player.direction.dx === 0 && player.direction.dy === 0)
                 return;
             // Mover el client
             player.move(moveVector.dx, moveVector.dy, deltaTime);

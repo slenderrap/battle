@@ -82,7 +82,6 @@ class ServerUtils {
     final playerProvider = getIt.get<PlayerProvider>();
     
     if (message.type == "connected") {
-      print("Server message received of type ${message.type}: ${message.data}");
       Map<String, dynamic> jsonData = message.data;
       Player player = Player.fromJson(jsonData['clientPlayer']);
       playerProvider.addPlayer(player);
