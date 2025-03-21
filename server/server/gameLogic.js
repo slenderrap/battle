@@ -94,6 +94,10 @@ class GameLogic {
                         break;
                     }
                 }
+                if (otherPlayer) {
+                    console.log("Attacking player " + otherPlayer.id);
+                    otherPlayer.takeDamage(player.attack);
+                }
                 break;
             case "heal":
                 this.healPlayer(player, data.amount);
@@ -113,8 +117,12 @@ class GameLogic {
             if (!moveVector || player.direction.dx === 0 && player.direction.dy === 0)
                 return;
             // Mover el client
-            if (!this.checkZone(player.x + moveVector.dx, player.y + moveVector.dy))
+            console.log("Moving player " + player.id + " to " + (player.x + moveVector.dx) + ", " + (player.y + moveVector.dy));
+            if (!this.checkZone(player.x + moveVector.dx, player.y + moveVector.dy)) {
+                player.direction = DIRECTIONS["none"];
+                player.nextDirection = null;
                 return;
+            }
             player.move(moveVector.dx, moveVector.dy, deltaTime);
         });
     }
