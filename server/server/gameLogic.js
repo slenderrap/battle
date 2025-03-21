@@ -13,15 +13,6 @@ const DIRECTIONS = {
     "right":      { dx: 1, dy: 0 },
     "none":       { dx: 0, dy: 0 },
 };
-
-fs.readFile('game_data.json', 'utf8', (err, data) => {
-    if (err) {
-        console.log("Error al leer json", err);
-        return;
-    }
-    const json = JSON.parse(data);
-});
-
 const Player = require('./player.js');
 
 class GameLogic {
@@ -29,7 +20,25 @@ class GameLogic {
 
     constructor() {
         this.players = new Map();
-        this.zones = []; // Initialize empty, will be populated when file is read
+        this.zones = [];
+        fs.readFile('game_data.json', 'utf8', (err, data) => {
+            if (err) {
+                console.error("Error al leer json", err);
+                return;
+            }
+            try {
+                const json = JSON.parse(data);
+                if (json.levels && json.levels.length > 0) {
+                    this.zones = json.levels.reduce((allZones, level) => {
+                        return allZones.concat(level.zones);
+                    }, []);
+                }
+            } catch (parseError) {
+                console.error("Error al parsear JSON:", parseError);
+            }
+        });
+
+
     }
 
     // Es connecta un client/jugador
