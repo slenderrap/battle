@@ -152,6 +152,15 @@ class PlayerProvider extends ChangeNotifier {
         checkPlayerHasMoved(otherPlayer, players[otherPlayer.id]!.tileX, players[otherPlayer.id]!.tileY);
       }
     }
+
+    //Check for life changes
+    for (Player otherPlayer in otherPlayers) {
+      if (players.containsKey(otherPlayer.id)) {
+        if (otherPlayer.health != players[otherPlayer.id]!.health) {
+          players[otherPlayer.id]!.health = otherPlayer.health;
+        }
+      }
+    }
     
     //Check for new players
     for (Player otherPlayer in otherPlayers) {

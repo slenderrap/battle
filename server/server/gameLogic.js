@@ -21,24 +21,19 @@ class GameLogic {
     constructor() {
         this.players = new Map();
         this.zones = [];
-        fs.readFile('game_data.json', 'utf8', (err, data) => {
-            if (err) {
-                console.error("Error al leer json", err);
-                return;
-            }
-            try {
-                const json = JSON.parse(data);
-                if (json.levels && json.levels.length > 0) {
-                    this.zones = json.levels.reduce((allZones, level) => {
-                        return allZones.concat(level.zones);
-                    }, []);
-                }
-            } catch (parseError) {
-                console.error("Error al parsear JSON:", parseError);
-            }
-        });
+        this.loadZones();
+    }
 
-
+    loadZones() {
+        let json = require('./game_data.json');
+        this.zones = json.levels[0].zones;
+        for (let zone of this.zones) {
+            zone.x /= 16;
+            zone.y /= 16;
+            zone.width /= 16;
+            zone.height /= 16;
+        }
+        console.log(this.zones.length);
     }
 
     // Es connecta un client/jugador
@@ -109,7 +104,6 @@ class GameLogic {
         } catch (error) {}
     }
 
-
     // Blucle de joc (funció que s'executa contínuament)
     updateGame(fps) {
         let deltaTime = 1 / fps;
@@ -119,16 +113,20 @@ class GameLogic {
             if (!moveVector || player.direction.dx === 0 && player.direction.dy === 0)
                 return;
             // Mover el client
+            if (!this.checkZone(player.x + moveVector.dx, player.y + moveVector.dy))
+                return;
             player.move(moveVector.dx, moveVector.dy, deltaTime);
         });
     }
 
     // Obtenir una posició on no hi h ha ni objectes ni jugadors
     getInitialPosition() {
-        const isFirstPlayer = this.players.size === 0;
-        const x = isFirstPlayer ? 1 : MAP_SIZE.width - 2;
-        const y = Math.floor(Math.random() * (MAP_SIZE.height - 2)) + 1;
-        return { x, y };
+        while (true) {
+            const isFirstPlayer = this.players.size === 0;
+            const x = isFirstPlayer ? 1 : MAP_SIZE.width - 2;
+            const y = Math.floor(Math.random() * (MAP_SIZE.height - 2)) + 1;
+            if (this.checkZone(x, y)) return { x, y };
+        }
     }
 
     // Retorna l'estat del joc (sense el objecte del client amb id playerId)

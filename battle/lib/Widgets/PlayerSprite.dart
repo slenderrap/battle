@@ -172,6 +172,7 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
           tileSize: widget.tileSize,
           scale: widget.scale,
           currentFrame: _currentFrame,
+          playerLife: widget.player.health,
         ),
         size: Size(
           widget.tileSize * widget.scale,
@@ -188,6 +189,8 @@ class PlayerSpritePainter extends CustomPainter {
   final int tileSize;
   final double scale;
   final int currentFrame;
+  final int playerLife;
+  final int playerMaxLife = 100;
 
   PlayerSpritePainter({
     required this.player,
@@ -195,6 +198,7 @@ class PlayerSpritePainter extends CustomPainter {
     required this.tileSize,
     required this.scale,
     required this.currentFrame,
+    this.playerLife = 100, // Default value
   });
 
   @override
@@ -220,8 +224,9 @@ class PlayerSpritePainter extends CustomPainter {
         break;
       default:
         row = 0;
+        break;
     }
-    
+    //Render Player Sprite
     final Rect src = Rect.fromLTWH(
       currentFrame * tileSize * 1.0,
       0 * tileSize * 1.0,
@@ -249,6 +254,57 @@ class PlayerSpritePainter extends CustomPainter {
     if (reverse) {
       canvas.restore();
     }
+
+    //Render Player Life Bar
+    final Color lifeBarBackgroundColor = Colors.black;
+    final Color lifeBarForegroundColor = const ui.Color.fromARGB(255, 110, 8, 8);
+    final Color lifeBarFillColor = Colors.red;
+    final int lifeBarBackgroundPadding = 2;
+    final double lifeBarHeight = 4;
+    final double lifeBarWidth = tileSize * scale * 0.8;
+    final double lifeBarX = (tileSize * scale - lifeBarWidth) / 2;
+    final double lifeBarY = tileSize * scale + 2;
+
+    // Draw life bar background
+    final Paint backgroundPaint = Paint()
+      ..color = lifeBarBackgroundColor
+      ..style = PaintingStyle.fill;
+    
+    final Rect backgroundRect = Rect.fromLTWH(
+      lifeBarX - lifeBarBackgroundPadding,
+      lifeBarY - lifeBarBackgroundPadding,
+      lifeBarWidth + (lifeBarBackgroundPadding * 2),
+      lifeBarHeight + (lifeBarBackgroundPadding * 2),
+    );
+    canvas.drawRect(backgroundRect, backgroundPaint);
+
+    // Draw life bar border
+    final Paint borderPaint = Paint()
+      ..color = lifeBarForegroundColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    
+    final Rect borderRect = Rect.fromLTWH(
+      lifeBarX,
+      lifeBarY,
+      lifeBarWidth,
+      lifeBarHeight,
+    );
+    canvas.drawRect(borderRect, borderPaint);
+
+    // Draw life bar fill
+    final Paint fillPaint = Paint()
+      ..color = lifeBarFillColor
+      ..style = PaintingStyle.fill;
+    
+    final double lifePercentage = playerLife / playerMaxLife;
+    final Rect fillRect = Rect.fromLTWH(
+      lifeBarX,
+      lifeBarY,
+      lifeBarWidth * lifePercentage,
+      lifeBarHeight,
+    );
+    canvas.drawRect(fillRect, fillPaint);
   }
 
   @override
