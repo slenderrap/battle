@@ -155,13 +155,21 @@ class GameLogic {
             ) {
                 if (zone.type.includes("stone") || zone.type.includes("water") || zone.type.includes("tree")) {
                     console.log(`Coordenadas (${x}, ${y}) están dentro de la zona: ${zone.type}`);
-                    return false;
+                    return 0;
+                }
+                if (zone.type.includes("heal")) {
+                    return 2;
+                }
+                if (zone.type.includes("moab")) {
+                    return 3;
                 }
             }
         }
-        console.log(`Coordenadas (${x}, ${y}) no están dentro de ninguna zona de agua o rocas`);
-        return true;
+        console.log(`Coordenadas (${x}, ${y}) no están dentro de ninguna zona`);
+        return 1;
     }
+
+
 }
 
 module.exports = GameLogic;
