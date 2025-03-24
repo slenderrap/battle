@@ -63,12 +63,14 @@ class _GameSceneState extends State<GameScene> {
           ServerUtils.sendMessage(ServerMessage("direction", {"direction": "right"}));
           break;
         case LogicalKeyboardKey.space:
-          // You can implement an action here if needed
+          ServerUtils.sendMessage(ServerMessage("attack", {}));
           break;
       } 
     } else if (event is KeyUpEvent) {
-    ServerUtils.sendMessage(ServerMessage("direction", {"direction": "none"}));
-  }
+      if (event.logicalKey == LogicalKeyboardKey.space)
+        return;
+      ServerUtils.sendMessage(ServerMessage("direction", {"direction": "none"}));
+    }
   }
 
   @override

@@ -84,10 +84,12 @@ class GameLogic {
                 let otherPlayer = null;
                 let AttackingPlayerX = player.x;
                 let AttackingPlayerY = player.y;
-                if (player.direction === "none") break;
-                let directionVector = DIRECTIONS[player.direction];
+                console.log(AttackingPlayerX, AttackingPlayerY);
+                let directionVector = player.watchDirection;
+                console.log(JSON.stringify(directionVector));
                 if (!directionVector) break;
                 for (let p of this.players.values()) {
+                    console.log(p.x, p.y, AttackingPlayerX + directionVector.dx, AttackingPlayerY + directionVector.dy);
                     if (p.id === id) continue;
                     if (p.x === AttackingPlayerX + directionVector.dx && p.y === AttackingPlayerY + directionVector.dy) {
                         otherPlayer = p;

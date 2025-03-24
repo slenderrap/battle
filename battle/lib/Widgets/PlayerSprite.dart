@@ -311,6 +311,6 @@ class PlayerSpritePainter extends CustomPainter {
   bool shouldRepaint(PlayerSpritePainter oldDelegate) {
     return oldDelegate.player != player ||
         oldDelegate.image != image ||
-        oldDelegate.currentFrame != currentFrame;
+        oldDelegate.currentFrame != currentFrame || playerLife != oldDelegate.playerLife;
   }
 } 

@@ -11,6 +11,7 @@ class Player {
         this.subX = 0;
         this.subY = 0;
         this.nextDirection = null;
+        this.watchDirection = this.direction;
     }
 
     takeDamage(amount) {
@@ -41,6 +42,9 @@ class Player {
         }
         console.log("Setting direction to: " + direction);
         this.direction = direction;
+        if (this.direction.dx != 0 || this.direction.dy != 0) {
+            this.watchDirection = this.direction;
+        }
         if (direction.dx > 0) {
             this.subX = 0.75;
         } else if (direction.dx < 0) {
@@ -60,21 +64,25 @@ class Player {
         
         // Apply movement when accumulation is >= 1 or <= -1
         if (Math.abs(this.subX) >= 1) {
-            console.log("Moving player " + this.id + ", " + this.subX + ", " + this.subY);
             this.x += Math.trunc(this.subX);
             this.subX -= Math.trunc(this.subX);
             if (this.nextDirection) {
                 this.direction = this.nextDirection;
+                if (this.direction.dx != 0 || this.direction.dy != 0) {
+                    this.watchDirection = this.direction;
+                }
                 this.nextDirection = null;
             }
         }
         if (Math.abs(this.subY) >= 1) {
-            console.log("Moving player " + this.id + ", " + this.subX + ", " + this.subY);
             this.y += Math.trunc(this.subY);
             this.subY -= Math.trunc(this.subY);
             this.hasMoved = true;
             if (this.nextDirection) {
                 this.direction = this.nextDirection;
+                if (this.direction.dx != 0 || this.direction.dy != 0) {
+                    this.watchDirection = this.direction;
+                }
                 this.nextDirection = null;
             }
         }
