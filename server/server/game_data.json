@@ -66,8 +66,8 @@
         {
           "type": "water1",
           "x": 0,
-          "y": 175,
-          "width": 48,
+          "y": 176,
+          "width": 47,
           "height": 80,
           "color": "blue"
         },
@@ -83,15 +83,15 @@
           "type": "water3",
           "x": 80,
           "y": 190,
-          "width": 130,
-          "height": 75,
+          "width": 127,
+          "height": 70,
           "color": "blue"
         },
         {
           "type": "water4",
           "x": 111,
           "y": 125,
-          "width": 51,
+          "width": 48,
           "height": 65,
           "color": "blue"
         },
@@ -100,23 +100,23 @@
           "x": 15,
           "y": 15,
           "width": 140,
-          "height": 65,
+          "height": 62,
           "color": "grey"
         },
         {
           "type": "stone2",
           "x": 290,
-          "y": 48,
-          "width": 77,
-          "height": 17,
+          "y": 50,
+          "width": 76,
+          "height": 13,
           "color": "grey"
         },
         {
           "type": "stone3",
-          "x": 305,
+          "x": 304,
           "y": 32,
           "width": 143,
-          "height": 17,
+          "height": 15,
           "color": "grey"
         },
         {
@@ -129,10 +129,10 @@
         },
         {
           "type": "stone5",
-          "x": 400,
-          "y": 47,
-          "width": 78,
-          "height": 17,
+          "x": 402,
+          "y": 49,
+          "width": 76,
+          "height": 14,
           "color": "grey"
         },
         {
@@ -145,10 +145,10 @@
         },
         {
           "type": "moab",
-          "x": 367,
+          "x": 368,
           "y": 47,
           "width": 33,
-          "height": 17,
+          "height": 16,
           "color": "red"
         },
         {
@@ -156,7 +156,7 @@
           "x": 0,
           "y": 0,
           "width": 512,
-          "height": 19,
+          "height": 10,
           "color": "grey"
         },
         {
@@ -177,7 +177,7 @@
         },
         {
           "type": "stone9",
-          "x": 210,
+          "x": 208,
           "y": 253,
           "width": 298,
           "height": 3,
