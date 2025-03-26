@@ -1,5 +1,5 @@
 class Player {
-    constructor(id, x, y, direction, health, attack, defense, speed) {
+    constructor(id, x, y, direction, health, attack, defense, speed, itsAlive) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -13,11 +13,15 @@ class Player {
         this.nextDirection = null;
         this.watchDirection = this.direction;
         this.attackDelay = 0;
+        this.itsAlive = true;
     }
 
     takeDamage(amount) {
         const damage = Math.max(0, amount - this.defense);
         this.health = Math.max(0, this.health - damage);
+        if (this.health === 0) {
+            this.itsAlive = false;
+        }
         return this.health;
     }
 
