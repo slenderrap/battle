@@ -12,6 +12,7 @@ class Player {
         this.subY = 0;
         this.nextDirection = null;
         this.watchDirection = this.direction;
+        this.attackDelay = 0;
     }
 
     takeDamage(amount) {

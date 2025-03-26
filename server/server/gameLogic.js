@@ -81,6 +81,7 @@ class GameLogic {
                 }
                 break;
             case "attack":
+                if (player.attackDelay > 0) break;
                 let otherPlayer = null;
                 let AttackingPlayerX = player.x;
                 let AttackingPlayerY = player.y;
@@ -115,6 +116,7 @@ class GameLogic {
         let deltaTime = 1 / fps;
         // Actualitzar la posició dels clients
         this.players.forEach(player => {
+            player.attackDelay -= deltaTime;
             let moveVector = player.direction;
             if (!moveVector || player.direction.dx === 0 && player.direction.dy === 0)
                 return;
