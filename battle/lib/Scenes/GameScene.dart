@@ -8,7 +8,6 @@ import 'package:battle/Widgets/TileMap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 class GameScene extends StatefulWidget {
   const GameScene({super.key});
@@ -63,6 +62,7 @@ class _GameSceneState extends State<GameScene> {
           ServerUtils.sendMessage(ServerMessage("direction", {"direction": "right"}));
           break;
         case LogicalKeyboardKey.space:
+          playerProvider.updatePlayerState(localPlayer.id, PlayerState.attacking);
           ServerUtils.sendMessage(ServerMessage("attack", {}));
           break;
       } 
@@ -97,16 +97,14 @@ class _GameSceneState extends State<GameScene> {
             }
 
             if (tilemapProvider.tileMaps.isEmpty) {
-              
               return const Center(
                 child: Text('No tilemap data available', style: TextStyle(color: Colors.white)),
               );
             }
-          
-            
             return Center(
               child: Stack(
                 children: [
+                  
                     TileMap(
                       mapData: tilemapProvider.tileMaps,
                       spriteMapPath: tilemapProvider.tilesSheetFile,
@@ -118,14 +116,26 @@ class _GameSceneState extends State<GameScene> {
                   ...playerProvider.players.values.map((player) {
                     return PlayerSprite(
                       player: player,
-                      spriteSheetPath: 'pirate_walk.png',
+                      spriteSheetPath: 'player_sheet.png',
                       tileSize: GameScene._PLAUER_SPRITE_SIZE,
                       scale: GameScene._PLAYER_SPRITE_SCALE,
                       onMoveComplete: () {
                         playerProvider.completePlayerMovement(player.id);
                       },
                     );
+                    
                   }).toList(),
+                    if (playerProvider.localPlayer != null && !playerProvider.localPlayer!.isAlive)
+                      Positioned.fill(
+                        child: Center(
+                          child: Text("You Died!", 
+                            style: TextStyle(
+                              fontSize: 32,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
                 ],
               ),
             );

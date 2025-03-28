@@ -38,8 +38,3 @@ class MainApp extends StatelessWidget {
     );  
   }
 }
-
-//TODO:
-// Add Attack
-// Reder life bar
-

@@ -28,6 +28,7 @@ class PlayerProvider extends ChangeNotifier {
 
   void setLocalPlayer(String id) {
     _localPlayer = _players[id];
+    _localPlayer!.isLocal = true;
     notifyListeners();
   }
 
@@ -141,7 +142,6 @@ class PlayerProvider extends ChangeNotifier {
     }
   }
 
-
   void updatePlayers(Player localPlayer, List<Player> otherPlayers) {
     // Check for movement
     if (localPlayer == null) return;
@@ -154,11 +154,12 @@ class PlayerProvider extends ChangeNotifier {
     }
 
     //Check for life changes
+    this._localPlayer!.health = localPlayer.health;
+    print("local health: ${this._localPlayer!.health}");
+    print("Server health: ${localPlayer.health}");
     for (Player otherPlayer in otherPlayers) {
       if (players.containsKey(otherPlayer.id)) {
-        if (otherPlayer.health != players[otherPlayer.id]!.health) {
-          players[otherPlayer.id]!.health = otherPlayer.health;
-        }
+        players[otherPlayer.id]!.health = otherPlayer.health;
       }
     }
     
@@ -169,14 +170,23 @@ class PlayerProvider extends ChangeNotifier {
       }
     }
     
-    //Check for deaths/disconnections - Fixed to avoid concurrent modification
+    //Check for disconnections
     List<String> idsToRemove = [];
     for (String id in players.keys) {
       if (id != localPlayer.id && !otherPlayers.any((player) => player.id == id)) {
         idsToRemove.add(id);
       }
     }
-    
+    //Check for deaths
+    //local player
+    this._localPlayer!.isAlive = localPlayer.isAlive;
+
+    //other players
+    for (Player otherPlayer in otherPlayers) {
+      if (players.containsKey(otherPlayer.id)) {
+        players[otherPlayer.id]!.isAlive = otherPlayer.isAlive;
+      }
+    }
     // Now remove the players after iteration is complete
     for (String id in idsToRemove) {
       removePlayer(id);

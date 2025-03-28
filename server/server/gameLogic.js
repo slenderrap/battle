@@ -69,6 +69,7 @@ class GameLogic {
           let data = obj.data;
           switch (obj.type) {
             case "direction":
+                if (!player.isPlayerAlive()) break;
                 console.log("Received direction message from client: " + data.direction);
                 let direction = DIRECTIONS[data.direction];
                 if (direction) {
@@ -81,6 +82,7 @@ class GameLogic {
                 }
                 break;
             case "attack":
+                if (!player.isPlayerAlive()) break;
                 if (player.attackDelay > 0) break;
                 let otherPlayer = null;
                 let AttackingPlayerX = player.x;
@@ -102,13 +104,22 @@ class GameLogic {
                     otherPlayer.takeDamage(player.attack);
                 }
                 break;
-            case "heal":
-                this.healPlayer(player, data.amount);
-                break;
             default:
                 break;
           }
         } catch (error) {}
+    }
+
+    movePlayer(player, moveVector) {
+        if (!moveVector || player.direction.dx === 0 && player.direction.dy === 0)
+            return;
+        console.log("Moving player " + player.id + " to " + (player.x + moveVector.dx) + ", " + (player.y + moveVector.dy));
+        if (!this.checkZone(player.x + moveVector.dx, player.y + moveVector.dy) != 0) {
+            player.direction = DIRECTIONS["none"];
+            player.nextDirection = null;
+            return;
+        }
+        player.move(moveVector.dx, moveVector.dy, 1);
     }
 
     // Blucle de joc (funció que s'executa contínuament)
@@ -117,17 +128,10 @@ class GameLogic {
         // Actualitzar la posició dels clients
         this.players.forEach(player => {
             player.attackDelay -= deltaTime;
-            let moveVector = player.direction;
-            if (!moveVector || player.direction.dx === 0 && player.direction.dy === 0)
-                return;
-            // Mover el client
-            console.log("Moving player " + player.id + " to " + (player.x + moveVector.dx) + ", " + (player.y + moveVector.dy));
-            if (!this.checkZone(player.x + moveVector.dx, player.y + moveVector.dy)) {
-                player.direction = DIRECTIONS["none"];
-                player.nextDirection = null;
-                return;
+            this.movePlayer(player, player.direction);
+            if (this.checkZone(player.x, player.y) == 2) {
+                player.heal(1);
             }
-            player.move(moveVector.dx, moveVector.dy, deltaTime);
         });
     }
 
@@ -137,7 +141,7 @@ class GameLogic {
             const isFirstPlayer = this.players.size === 0;
             const x = isFirstPlayer ? 1 : MAP_SIZE.width - 2;
             const y = Math.floor(Math.random() * (MAP_SIZE.height - 2)) + 1;
-            if (this.checkZone(x, y)) return { x, y };
+            if (this.checkZone(x, y) != 0) return { x, y };
         }
     }
 

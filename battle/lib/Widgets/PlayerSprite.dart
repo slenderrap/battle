@@ -1,7 +1,10 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:battle/Models/Player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:battle/Providers/PlayerProvider.dart';
 
 class PlayerSprite extends StatefulWidget {
   final Player player;
@@ -9,6 +12,7 @@ class PlayerSprite extends StatefulWidget {
   final int tileSize;
   final double scale;
   final VoidCallback onMoveComplete;
+
 
   const PlayerSprite({
     Key? key,
@@ -28,7 +32,7 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
   bool _isImageLoaded = false;
   late AnimationController _controller;
   int _currentFrame = 0;
-  
+
   late Animation<double> _moveAnimation;
   double _startX = 0;
   double _startY = 0;
@@ -46,12 +50,13 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
       setState(() {
         if (widget.player.state == PlayerState.walking || 
             widget.player.state == PlayerState.attacking) {
-          _currentFrame = (_controller.value * 4).floor() % 4;
+          _currentFrame = (_controller.value * 12).floor() % 12;
         } else {
           _currentFrame = 0;
         }
       });
     });
+
     
     _moveAnimation = Tween<double>(begin: 0, end: 1).animate(_controller);
     
@@ -90,10 +95,22 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
       } else if (widget.player.state == PlayerState.walking && !_controller.isAnimating) {
         _controller.reset();
         _controller.forward();
+      } else if (widget.player.state == PlayerState.attacking && !_controller.isAnimating) {
+        _controller.reset();
+        _controller.forward().then((_) {
+          // Reset to idle state after attack animation completes
+          if (mounted) {
+            Provider.of<PlayerProvider>(context, listen: false).updatePlayerState(widget.player.id, PlayerState.idle);
+          }
+        });
       }
     }
     
     if (oldWidget.player.direction != widget.player.direction) {
+      setState(() {});
+    }
+
+    if (oldWidget.player.health != widget.player.health) {
       setState(() {});
     }
   }
@@ -160,6 +177,7 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
           _currentFrame = 0;
         });
       }
+      
     }
    
     return Positioned(
@@ -173,6 +191,7 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
           scale: widget.scale,
           currentFrame: _currentFrame,
           playerLife: widget.player.health,
+          isAlive: widget.player.isAlive,
         ),
         size: Size(
           widget.tileSize * widget.scale,
@@ -182,7 +201,6 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
     );
   }
 }
-
 class PlayerSpritePainter extends CustomPainter {
   final Player player;
   final ui.Image image;
@@ -191,6 +209,7 @@ class PlayerSpritePainter extends CustomPainter {
   final int currentFrame;
   final int playerLife;
   final int playerMaxLife = 100;
+  final bool isAlive;
 
   PlayerSpritePainter({
     required this.player,
@@ -199,37 +218,39 @@ class PlayerSpritePainter extends CustomPainter {
     required this.scale,
     required this.currentFrame,
     this.playerLife = 100, // Default value
+    this.isAlive = true,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint();
-    
+    print("isAlive painter: ${isAlive}");
     // Select row based on direction
-    int row;
-    bool reverse = false;
-    switch (player.direction) {
-      case Direction.down:
-        row = 0;
-        break;
-      case Direction.left:
+    int row = 0;
+    if (player.isLocal) {
+      if (player.state == PlayerState.attacking) {
         row = 1;
-        reverse = true;
-        break;
-      case Direction.right:
-        row = 2;
-        break;
-      case Direction.up:
+      }
+      else {
         row = 3;
-        break;
-      default:
+      }
+    }
+    else {
+      if (player.state == PlayerState.attacking) {
+        row = 2;
+      }
+      else {
         row = 0;
-        break;
+      }
+    }
+    bool reverse = false;
+    if (player.direction == Direction.left) {
+        reverse = true;
     }
     //Render Player Sprite
     final Rect src = Rect.fromLTWH(
       currentFrame * tileSize * 1.0,
-      0 * tileSize * 1.0,
+      row * tileSize * 1.0,
       tileSize * 1.0,
       tileSize * 1.0,
     );
@@ -240,10 +261,16 @@ class PlayerSpritePainter extends CustomPainter {
       tileSize * scale,
       tileSize * scale,
     );
+
+    canvas.save();
     if (reverse) {
-      canvas.save();
       canvas.translate(tileSize * scale, 0);
       canvas.scale(-1, 1);
+    }
+    if (!isAlive) {
+      canvas.translate(tileSize * scale, 0);
+      canvas.rotate(math.pi/2);
+      canvas.scale(1, 1);
     }
     canvas.drawImageRect(
       image,
@@ -251,9 +278,7 @@ class PlayerSpritePainter extends CustomPainter {
       dst,
       paint,
     );
-    if (reverse) {
-      canvas.restore();
-    }
+    canvas.restore();
 
     //Render Player Life Bar
     final Color lifeBarBackgroundColor = Colors.black;

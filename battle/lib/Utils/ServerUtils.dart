@@ -9,8 +9,8 @@ import 'package:battle/Models/ServerMessage.dart';
 
 
 class ServerUtils {
-  static const String host = "localhost";
-  static const int port = 8888;
+  static const String host = "aelbakhti.ieti.site";
+  static const int port = 443;
   static WebSocketChannel? _channel;
   static StreamSubscription<dynamic>? _subscription;
   static Function? _onDisconnect;
@@ -18,7 +18,7 @@ class ServerUtils {
   static Future<void> connectToServer({Function? onDisconnect}) async {
     try {
       _onDisconnect = onDisconnect;
-      final uri = Uri.parse('ws://$host:$port');
+      final uri = Uri.parse('wss://$host:$port');
       _channel = await IOWebSocketChannel.connect(uri);
       print('Connected to server at $uri');
       
