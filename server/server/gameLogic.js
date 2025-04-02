@@ -104,22 +104,14 @@ class GameLogic {
                     otherPlayer.takeDamage(player.attack);
                 }
                 break;
+            case "heal":
+                console.log
+                this.healPlayer(player, data.amount);
+                break;
             default:
                 break;
           }
         } catch (error) {}
-    }
-
-    movePlayer(player, moveVector) {
-        if (!moveVector || player.direction.dx === 0 && player.direction.dy === 0)
-            return;
-        console.log("Moving player " + player.id + " to " + (player.x + moveVector.dx) + ", " + (player.y + moveVector.dy));
-        if (!this.checkZone(player.x + moveVector.dx, player.y + moveVector.dy) != 0) {
-            player.direction = DIRECTIONS["none"];
-            player.nextDirection = null;
-            return;
-        }
-        player.move(moveVector.dx, moveVector.dy, 1);
     }
 
     // Blucle de joc (funció que s'executa contínuament)
@@ -128,10 +120,17 @@ class GameLogic {
         // Actualitzar la posició dels clients
         this.players.forEach(player => {
             player.attackDelay -= deltaTime;
-            this.movePlayer(player, player.direction);
-            if (this.checkZone(player.x, player.y) == 2) {
-                player.heal(1);
+            let moveVector = player.direction;
+            if (!moveVector || player.direction.dx === 0 && player.direction.dy === 0)
+                return;
+            // Mover el client
+            console.log("Moving player " + player.id + " to " + (player.x + moveVector.dx) + ", " + (player.y + moveVector.dy));
+            if (!this.checkZone(player.x + moveVector.dx, player.y + moveVector.dy) != 0) {
+                player.direction = DIRECTIONS["none"];
+                player.nextDirection = null;
+                return;
             }
+            player.move(moveVector.dx, moveVector.dy, deltaTime);
         });
     }
 
