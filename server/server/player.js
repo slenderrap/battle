@@ -27,6 +27,9 @@ class Player {
 
     heal(amount) {
         this.health += amount;
+        if (this.health > 100) {
+            this.health = 100;
+        }
         return this.health;
     }
 
