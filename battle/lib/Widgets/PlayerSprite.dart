@@ -32,6 +32,7 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
   bool _isImageLoaded = false;
   late AnimationController _controller;
   int _currentFrame = 0;
+  int _animationId = 0;
 
   late Animation<double> _moveAnimation;
   double _startX = 0;
@@ -71,38 +72,38 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
   @override
   void didUpdateWidget(PlayerSprite oldWidget) {
     super.didUpdateWidget(oldWidget);    
-    // Force update position values whenever the widget updates if player is moving
-    if (widget.player.isMoving) {
+    if (widget.player.isMoving || widget.player.state == PlayerState.attacking) {
       _updatePositionValues();
       
       if (!_controller.isAnimating) {
         _controller.reset();
+        _animationId++;
+        final int currentMoveId = _animationId;
+
         _controller.forward().then((_) {
-          widget.onMoveComplete();
+          if (mounted && currentMoveId == _animationId) {
+            widget.onMoveComplete();
+          }
         });
       }
     } else if (oldWidget.player.tileX != widget.player.tileX || 
         oldWidget.player.tileY != widget.player.tileY ||
         oldWidget.player.displayX != widget.player.displayX ||
         oldWidget.player.displayY != widget.player.displayY) {
-      
+       
       _updatePositionValues();
     }
-    
     if (oldWidget.player.state != widget.player.state) {
+      print("Player state changed");
+      _controller.stop();
+      _controller.reset();
+      _animationId++;
+      final int currentAnimationInstanceId = _animationId;
+
       if (widget.player.state == PlayerState.idle) {
         _controller.repeat();
-      } else if (widget.player.state == PlayerState.walking && !_controller.isAnimating) {
-        _controller.reset();
+      } else if (widget.player.state == PlayerState.walking) {
         _controller.forward();
-      } else if (widget.player.state == PlayerState.attacking && !_controller.isAnimating) {
-        _controller.reset();
-        _controller.forward().then((_) {
-          // Reset to idle state after attack animation completes
-          if (mounted) {
-            Provider.of<PlayerProvider>(context, listen: false).updatePlayerState(widget.player.id, PlayerState.idle);
-          }
-        });
       }
     }
     
@@ -165,16 +166,19 @@ class _PlayerSpriteState extends State<PlayerSprite> with SingleTickerProviderSt
     if (widget.player.isMoving) {
       currentX = startX + (targetX - startX) * _moveAnimation.value;
       currentY = startY + (targetY - startY) * _moveAnimation.value;      
-      // Add threshold check to stop animation when close enough to target
-      const double threshold = 0.95; // When animation is 95% complete
-      if (_moveAnimation.value >= threshold && _controller.isAnimating) {        _controller.stop();
-        // Jump to final position
+      
+      const double threshold = 0.95; 
+      if (_moveAnimation.value >= threshold && _controller.isAnimating) {        
+        final int currentMoveIdForThreshold = _animationId;
+        _controller.stop();
+        
         currentX = targetX;
         currentY = targetY;
-        // Schedule the completion callback for the next frame
+        
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          widget.onMoveComplete();
-          _currentFrame = 0;
+          if (mounted && currentMoveIdForThreshold == _animationId) {
+            widget.onMoveComplete();
+          }
         });
       }
       
@@ -225,6 +229,7 @@ class PlayerSpritePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint();
     // Select row based on direction
+    print("painter: " + player.state.toString());
     int row = 0;
     if (player.isLocal) {
       if (player.state == PlayerState.attacking) {
@@ -335,6 +340,8 @@ class PlayerSpritePainter extends CustomPainter {
   bool shouldRepaint(PlayerSpritePainter oldDelegate) {
     return oldDelegate.player != player ||
         oldDelegate.image != image ||
-        oldDelegate.currentFrame != currentFrame || playerLife != oldDelegate.playerLife;
+        oldDelegate.currentFrame != currentFrame ||
+        playerLife != oldDelegate.playerLife ||
+        player.state != oldDelegate.player.state;
   }
 } 

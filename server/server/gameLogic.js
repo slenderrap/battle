@@ -82,11 +82,11 @@ class GameLogic {
                 }
                 break;
             case "attack":
-                player.isAttacking = true;
-                player.attackDelay = 2;
                 console.log("attack");
                 if (!player.isPlayerAlive()) break;
                 if (player.attackDelay > 0) break;
+                player.isAttacking = true;
+                player.attackDelay = 2;
                 let otherPlayer = null;
                 let AttackingPlayerX = player.x;
                 let AttackingPlayerY = player.y;
@@ -134,6 +134,7 @@ class GameLogic {
         // Actualitzar la posició dels clients
         this.players.forEach(player => {
             player.attackDelay -= deltaTime;
+            console.log(player.isAttacking);
             if (player.attackDelay <= 0) {
                 player.isAttacking = false;
             }

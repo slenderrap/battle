@@ -162,6 +162,7 @@ class PlayerProvider extends ChangeNotifier {
     }
 
     //Check for state changes
+    print(_localPlayer!.state);
     if (_localPlayer!.state == PlayerState.idle && localPlayer.state == PlayerState.attacking) {
       _localPlayer!.state = PlayerState.attacking;
     }
