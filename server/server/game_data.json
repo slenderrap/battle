@@ -137,10 +137,10 @@
         },
         {
           "type": "heal",
-          "x": 353,
-          "y": 161,
-          "width": 62,
-          "height": 30,
+          "x": 350,
+          "y": 160,
+          "width": 65,
+          "height": 33,
           "color": "green"
         },
         {
@@ -161,7 +161,7 @@
         },
         {
           "type": "stone7",
-          "x": -16,
+          "x": 0,
           "y": 19,
           "width": 5,
           "height": 157,
