@@ -75,7 +75,7 @@ class Player {
     tileY = json['y'],
     health = json['health'],
     direction = Player._parseDirection(json['direction']),
-    state = PlayerState.idle,
+    state = _parseBool(json['isAttacking']) ? PlayerState.attacking : PlayerState.idle,
     frame = 0,
     displayX = json['x'].toDouble(),
     displayY = json['y'].toDouble(),

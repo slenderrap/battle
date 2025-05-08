@@ -224,7 +224,6 @@ class PlayerSpritePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint();
-    print("isAlive painter: ${isAlive}");
     // Select row based on direction
     int row = 0;
     if (player.isLocal) {

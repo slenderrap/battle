@@ -137,10 +137,10 @@
         },
         {
           "type": "heal",
-          "x": 353,
-          "y": 161,
-          "width": 62,
-          "height": 30,
+          "x": 343,
+          "y": 143,
+          "width": 64,
+          "height": 32,
           "color": "green"
         },
         {

@@ -82,6 +82,9 @@ class GameLogic {
                 }
                 break;
             case "attack":
+                player.isAttacking = true;
+                player.attackDelay = 2;
+                console.log("attack");
                 if (!player.isPlayerAlive()) break;
                 if (player.attackDelay > 0) break;
                 let otherPlayer = null;
@@ -105,7 +108,6 @@ class GameLogic {
                 }
                 break;
             case "heal":
-                console.log
                 this.healPlayer(player, data.amount);
                 break;
             default:
@@ -114,23 +116,31 @@ class GameLogic {
         } catch (error) {}
     }
 
+    movePlayer(player, moveVector ,deltaTime) {
+        if (!moveVector || player.direction.dx === 0 && player.direction.dy === 0)
+            return;
+        console.log("Moving player " + player.id + " to " + (player.x + moveVector.dx) + ", " + (player.y + moveVector.dy));
+        if (!this.checkZone(player.x + moveVector.dx, player.y + moveVector.dy) != 0) {
+            player.direction = DIRECTIONS["none"];
+            player.nextDirection = null;
+            return;
+        }
+        player.move(moveVector.dx, moveVector.dy, deltaTime);
+    }
+
     // Blucle de joc (funció que s'executa contínuament)
     updateGame(fps) {
         let deltaTime = 1 / fps;
         // Actualitzar la posició dels clients
         this.players.forEach(player => {
             player.attackDelay -= deltaTime;
-            let moveVector = player.direction;
-            if (!moveVector || player.direction.dx === 0 && player.direction.dy === 0)
-                return;
-            // Mover el client
-            console.log("Moving player " + player.id + " to " + (player.x + moveVector.dx) + ", " + (player.y + moveVector.dy));
-            if (!this.checkZone(player.x + moveVector.dx, player.y + moveVector.dy) != 0) {
-                player.direction = DIRECTIONS["none"];
-                player.nextDirection = null;
-                return;
+            if (player.attackDelay <= 0) {
+                player.isAttacking = false;
             }
-            player.move(moveVector.dx, moveVector.dy, deltaTime);
+            this.movePlayer(player, player.direction, deltaTime);
+            if (this.checkZone(player.x, player.y) == 2) {
+                player.heal(1);
+            }
         });
     }
 

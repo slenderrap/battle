@@ -155,11 +155,31 @@ class PlayerProvider extends ChangeNotifier {
 
     //Check for life changes
     this._localPlayer!.health = localPlayer.health;
-    print("local health: ${this._localPlayer!.health}");
-    print("Server health: ${localPlayer.health}");
     for (Player otherPlayer in otherPlayers) {
       if (players.containsKey(otherPlayer.id)) {
         players[otherPlayer.id]!.health = otherPlayer.health;
+      }
+    }
+
+    //Check for state changes
+    if (_localPlayer!.state == PlayerState.idle && localPlayer.state == PlayerState.attacking) {
+      _localPlayer!.state = PlayerState.attacking;
+    }
+    else if (_localPlayer!.state == PlayerState.attacking && localPlayer.state == PlayerState.idle) {
+      _localPlayer!.state = PlayerState.idle;
+    }
+    for (Player otherPlayer in otherPlayers) {
+      if (players.containsKey(otherPlayer.id)) {
+        if (otherPlayer.state == PlayerState.attacking) {
+          if (players[otherPlayer.id]!.state == PlayerState.idle) {
+            players[otherPlayer.id]!.state = PlayerState.attacking;
+          }
+        }
+        if (otherPlayer.state == PlayerState.idle) {
+          if (players[otherPlayer.id]!.state == PlayerState.attacking) {
+            players[otherPlayer.id]!.state = PlayerState.idle;
+          }
+        }
       }
     }
     

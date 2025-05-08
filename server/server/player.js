@@ -14,6 +14,7 @@ class Player {
         this.watchDirection = this.direction;
         this.attackDelay = 0;
         this.isAlive = true;
+        this.isAttacking = false;
     }
 
     takeDamage(amount) {
@@ -107,7 +108,7 @@ class Player {
         };
     }
 
-        toString() {
+    toString() {
         return `Player [Health: ${this.health}, Attack: ${this.attack}, Defense: ${this.defense}, Position: (${this.x}, ${this.y}), Speed: ${this.speed}]`;
     }
 }
