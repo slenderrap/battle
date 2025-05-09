@@ -20,7 +20,7 @@ class ServerUtils {
   static Future<void> connectToServer({Function? onDisconnect}) async {
     try {
       _onDisconnect = onDisconnect;
-      final uri = Uri.parse('ws://$host:$port');
+      final uri = Uri.parse('wss://$host:$port');
       _channel = await IOWebSocketChannel.connect(uri);
       print('Connected to server at $uri');
       
