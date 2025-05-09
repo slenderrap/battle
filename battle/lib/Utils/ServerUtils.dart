@@ -9,10 +9,10 @@ import 'package:battle/Models/ServerMessage.dart';
 
 
 class ServerUtils {
-  //static const String host = "aelbakhti.ieti.site";
-  // static const int port = 443;
-  static const String host = "localhost";
-  static const int port = 8888;
+  static const String host = "bandera1.ieti.site";
+  static const int port = 443;
+  //static const String host = "localhost";
+  //static const int port = 8888;
   static WebSocketChannel? _channel;
   static StreamSubscription<dynamic>? _subscription;
   static Function? _onDisconnect;
